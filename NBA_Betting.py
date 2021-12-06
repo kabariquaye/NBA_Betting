@@ -1952,7 +1952,7 @@ betgameclick = []
 time.sleep(random.uniform(10, 20))
 driver.find_element_by_xpath('//*[@id="header-container"]/span/div/div/div/span').click()
 driver.find_element_by_xpath('//*[@id="LoginForm__account-name"]').send_keys('kabariq@gmail.com')
-driver.find_element_by_xpath('//*[@id="LoginForm__password"]').send_keys('Balotelli09!')
+driver.find_element_by_xpath('//*[@id="LoginForm__password"]').send_keys('############')
 driver.find_element_by_xpath(
 '//*[@id="portals-container"]/div/div[1]/div/div[2]/div/content/div/div/div/form/button').click()
 time.sleep(random.uniform(10, 20))
