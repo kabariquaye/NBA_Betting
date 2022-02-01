@@ -1,11 +1,13 @@
-
-#Import Libraries
+# Import Libraries
 import requests
 import random
 import json
 import math
 import warnings
 import pickle
+
+from cffi.setuptools_ext import execfile
+import undetected_chromedriver.v2 as uc
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
@@ -39,10 +41,9 @@ scaler = StandardScaler()
 
 # Starts importing model data
 
-directory1='/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/'
+# directory1='/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/'
 
-nbadata = pd.read_csv(directory1+'nbadataytd.csv',
-                      low_memory=False)
+nbadata = pd.read_csv('nbadataytd.csv', low_memory=False)
 
 nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
                    'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
@@ -120,15 +121,14 @@ schedule['home_team'] = schedule['home_team'].astype('S')
 hometeams = schedule['home_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
 schedule['home_team'] = [x[1] for x in hometeams]
 # gamehist = schedule.loc[schedule['Season Year']!=currentyear]['start_time']
-teammapping = pd.read_csv(directory1+'dataframe.csv')
+teammapping = pd.read_csv('dataframe.csv')
 schedule = pd.merge(schedule, teammapping, left_on=schedule['home_team'], right_on=teammapping['Team_Names'],
                     how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'HOME_TEAM_ABBREVIATION'})
 schedule = schedule.drop('key_0', axis=1)
 schedule = pd.merge(schedule, teammapping, left_on=schedule['away_team'], right_on=teammapping['Team_Names'],
                     how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'AWAY_TEAM_ABBREVIATION'})
 nbateams = pd.DataFrame(schedule['HOME_TEAM_ABBREVIATION'].unique())
-seasonyears = ['2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011',
-               '2010']
+seasonyears = ['2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010']
 # We want to add the new data to our original file, therefore we filter on the new season and compare the dates in our file to the games that have been played.
 playoffslist = []
 nbadatalist = []
@@ -287,8 +287,8 @@ if (nbadataworking.empty):
 
 nbadata = nbadata.append(nbadataworking)
 nbadataworking = nbadataworking.append(playoffsdata)
-nbadata.to_csv(directory1+'nbadataytd.csv')
-nbadata = pd.read_csv(directory1+'nbadataytd.csv',
+nbadata.to_csv('nbadataytd.csv')
+nbadata = pd.read_csv('nbadataytd.csv',
                       low_memory=False)
 nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
                    'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
@@ -303,7 +303,7 @@ nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', '
                    'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs']]
 
 execfile('/Users/kabariquaye/PycharmProjects/pythonProject1/AdditionalData.py')
-nbadataaddon = pd.read_csv(directory1+'nbadataytdaddon.csv',
+nbadataaddon = pd.read_csv('nbadataytdaddon.csv',
                            low_memory=False)
 nbadata['TEAM_ID'] = nbadata['TEAM_ID'].astype(str)
 nbadataaddon['ID'] = nbadataaddon['Gamedate'].astype(str) + nbadataaddon['TEAM_ID'].astype(str).str[:-2]
@@ -376,7 +376,7 @@ schedule['away_team'] = [x[1] for x in awayteams]
 schedule['home_team'] = schedule['home_team'].astype('S')
 hometeams = schedule['home_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
 schedule['home_team'] = [x[1] for x in hometeams]
-teammapping = pd.read_csv(directory1+'dataframe.csv')
+teammapping = pd.read_csv('dataframe.csv')
 schedule = pd.merge(schedule, teammapping, left_on=schedule['home_team'], right_on=teammapping['Team_Names'],
                     how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'HOME_TEAM_ABBREVIATION'})
 schedule = schedule.drop('key_0', axis=1)
@@ -812,9 +812,7 @@ avgrolltotalscore['avgID'] = avgrolltotalscore['TEAM_ABBREVIATION'] + avgrolltot
 
 avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score', 'Month']).drop_duplicates()
 
-
-import undetected_chromedriver.v2 as uc
-driver = uc.Chrome(directory1+'chromedriver')  # need to have the right version of chromedriver installed on computer.
+driver = uc.Chrome('chromedriver')  # need to have the right version of chromedriver installed on computer.
 driver.get("https://www.sportsinteraction.com/basketball/nba-betting-lines/")
 # The gamedate to check if the games are today
 driver.maximize_window()
@@ -829,9 +827,10 @@ betgameclick = []
 # Actual Site Log-in
 time.sleep(random.uniform(10, 20))
 driver.find_element_by_xpath('//*[@id="app"]/div/span/div/div/div/span').click()
-prairieaccounts=[['kabariq@gmail.com', '########'], ['lcao0ca', 'nba-algo-betting-2021'], ['hunter', 'nba-algo-betting-2021'],['wchienenyanga','nba-algo-betting-2021']]
-montrealaccounts=[[]]
-torontoaccounts=[[]]
+prairieaccounts = [['kabariq@gmail.com', '########'], ['lcao0ca', 'nba-algo-betting-2021'],
+                   ['hunter', 'nba-algo-betting-2021'], ['wchienenyanga', 'nba-algo-betting-2021']]
+montrealaccounts = [[]]
+torontoaccounts = [[]]
 
 driver.find_element_by_xpath('//*[@id="LoginForm__account-name"]').send_keys(prairieaccounts[0][0])
 time.sleep(random.uniform(5, 10))
@@ -858,7 +857,7 @@ account = []
 winslosses = []
 account.insert(len(account), [balance, datetime.datetime.today().strftime('%Y-%m-%d')])
 bot = pd.DataFrame(account).rename(columns={0: 'Account_Balance', 1: 'Date'})  # balance over time
-botfile = pd.read_csv(directory1+'BalanceOverTime.csv')
+botfile = pd.read_csv('BalanceOverTime.csv')
 
 botfile = botfile[['Account_Balance', 'Date']]
 
@@ -870,7 +869,7 @@ else:
 
 botfile = botfile[['Account_Balance', 'Date']]
 
-botfile.to_csv(directory1+'BalanceOverTime.csv')
+botfile.to_csv('BalanceOverTime.csv')
 
 if gamedatesi == today:
 
@@ -921,7 +920,7 @@ bets = bets.reset_index().drop('index', axis=1)
 
 bets['Date'] = datetime.datetime.today().strftime('%Y-%m-%d')
 
-savebets = pd.read_csv(directory1+'SaveBets.csv')
+savebets = pd.read_csv('SaveBets.csv')
 
 savebets = savebets[
     ['Over-Under Odds', 'Over-Under Scores', 'Home Team', 'Away Team', 'Home Odds', 'Away Odds', 'Date', 'Difference']]
@@ -938,7 +937,6 @@ savebets = savebets[
 savebets['Home Team'] = savebets['Home Team'].str.replace(" ", "_").str.upper()
 savebets['Away Team'] = savebets['Away Team'].str.replace(" ", "_").str.upper()
 
-
 simapping = pd.DataFrame(data={'Team': ['TORONTO_RAPTORS',
                                         'BOSTON_CELTICS', 'LA_CLIPPERS', 'DENVER_NUGGETS', 'MIAMI_HEAT',
                                         'GOLDEN_STATE_WARRIORS', 'PHOENIX_SUNS', 'CHARLOTTE_HORNETS',
@@ -953,7 +951,6 @@ simapping = pd.DataFrame(data={'Team': ['TORONTO_RAPTORS',
                                                 'OKC', 'HOU', 'CLE', 'UTA', 'BKN', 'DET', 'MIN', 'NOP', 'NYK', 'WAS',
                                                 'ORL', 'PHI', 'SAC', 'IND', 'MIL', 'DEN', 'ATL', 'MEM', 'POR', 'LAL',
                                                 'SAS']})
-
 
 savebets = pd.merge(savebets, simapping, left_on=savebets['Home Team'], right_on=simapping['Team'], how='left')
 
@@ -970,7 +967,7 @@ savebets = savebets[['Over-Under Odds', 'Over-Under Scores',
                      'Difference', 'Team', 'ABBREVIATION', 'ID', 'HomeScheduleID',
                      'TotalScore']]
 
-savebets.to_csv(directory1+'SaveBets.csv')
+savebets.to_csv('SaveBets.csv')
 
 # Cosmetics
 bets['Home Team'] = bets['Home Team'].str.replace(" ", "_").str.upper()
@@ -988,9 +985,9 @@ bets = bets.rename(columns={'ABBREVIATION_x': 'Home Abbreviation', 'ABBREVIATION
 # BetClick DataFrame with the command to the button in question to click and a few conversions
 betclick = pd.DataFrame(betgameclick).rename(
     columns={0: 'Over Click', 1: 'Under Click', 2: 'Home Click', 3: 'Away Click', 4: 'Cut'})
-bets.loc[bets['Home Odds']=='Closed','Home Odds']=1
+bets.loc[bets['Home Odds'] == 'Closed', 'Home Odds'] = 1
 bets['Home Odds'] = bets['Home Odds'].astype(float)
-bets.loc[bets['Away Odds']=='Closed','Away Odds']=1
+bets.loc[bets['Away Odds'] == 'Closed', 'Away Odds'] = 1
 bets['Away Odds'] = bets['Away Odds'].astype(float)
 bets['Over-Under Odds'] = bets['Over-Under Odds'].astype(float)
 
@@ -1011,8 +1008,7 @@ betclick.reset_index().drop('index', axis=1)
 # Save cutpoints for model testing later
 cutpoints = list((set(bets['Over-Under Scores'])))
 
-
- # Betting Strategy 1
+# Betting Strategy 1
 favorite = []
 underdog = []
 favoriteclick = []
@@ -1055,7 +1051,7 @@ with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/models.pc
 models = [(modelsonly, item) for modelsonly, item in enumerate(modelsonly, start=210)]
 
 completetesting = pd.DataFrame()
-predicted=[]
+predicted = []
 
 for j in range(0, len(bets)):
 
@@ -1105,44 +1101,59 @@ for j in range(0, len(bets)):
     testing['Average_Team_Score'] = np.mean(
         testteamscoring['Team_Score'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
     testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == home) & (
-                totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)['TotalScore']
+            totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)[
+        'TotalScore']
     testing['Average_Team_Total_Score'] = np.mean(testscoring.loc[len(testscoring) - 5:len(testscoring)])
     testteamscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == opponent) & (
-    (teamscoring['Season Year'] == currentyear))].reset_index()
+        (teamscoring['Season Year'] == currentyear))].reset_index()
     testing['Average_Opp_Team_Score'] = np.mean(
         testteamscoring['Team_Score'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
     testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == opponent) & (
-                totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)['TotalScore']
+            totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)[
+        'TotalScore']
     testing['Average_Opp_Total_Score'] = np.mean(testscoring.loc[len(testscoring) - 5:len(testscoring)])
 
     testing['Team_Last_Game_Score'] = \
-    schedule[(schedule['HOME_TEAM_ABBREVIATION'] == home) & (schedule['Season Year'] == currentyear)].filter(
-        ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
-        columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(
-        schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == home) & (schedule['Season Year'] == currentyear)].filter(
+        schedule[(schedule['HOME_TEAM_ABBREVIATION'] == home) & (schedule['Season Year'] == currentyear)].filter(
+            ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
+            columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(
+            schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == home) & (schedule['Season Year'] == currentyear)].filter(
+                ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
+                columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
+            ['start_time'], ascending=False)['team_score'].iloc[0]
+    testing['Opponent_Last_Game_Score'] = \
+        schedule[(schedule['HOME_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
+            ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
+            columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(schedule[
+            (schedule['AWAY_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
             ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
             columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
-        ['start_time'], ascending=False)['team_score'].iloc[0]
-    testing['Opponent_Last_Game_Score'] = \
-    schedule[(schedule['HOME_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
-        ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
-        columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
-        ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
-        columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
-        ['start_time'], ascending=False)['team_score'].iloc[0]
-    testinghome=avgHomeStats[avgHomeStats['Team']==home][['AvgHPF', 'AvgHFGM','AvgHBLK', 'AvgHFG3M', 'AvgHOREB','AvgHAST', 'AvgHREB', 'AvgHSTL','AvgHAST_PCT', 'AvgHAST_TO', 'AvgHAST_RATIO', 'AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT','AvgHTM_TOV_PCT', 'AvgHEFG_PCT', 'AvgHTS_PCT', 'AvgHE_PACE', 'AvgHPACE', 'AvgHPACE_PER40', 'AvgHPOSS', 'AvgHPIE']].tail(1).reset_index()
-    testingaway=avgAwayStats[avgAwayStats['Team']==opponent][['AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgAAST_PCT', 'AvgAAST_TO', 'AvgAAST_RATIO', 'AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT','AvgATM_TOV_PCT', 'AvgAEFG_PCT', 'AvgATS_PCT', 'AvgAE_PACE', 'AvgAPACE', 'AvgAPACE_PER40', 'AvgAPOSS', 'AvgAPIE']].tail(1).reset_index()
+            ['start_time'], ascending=False)['team_score'].iloc[0]
+    testinghome = avgHomeStats[avgHomeStats['Team'] == home][
+        ['AvgHPF', 'AvgHFGM', 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB', 'AvgHAST', 'AvgHREB', 'AvgHSTL', 'AvgHAST_PCT',
+         'AvgHAST_TO', 'AvgHAST_RATIO', 'AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT', 'AvgHTM_TOV_PCT', 'AvgHEFG_PCT',
+         'AvgHTS_PCT', 'AvgHE_PACE', 'AvgHPACE', 'AvgHPACE_PER40', 'AvgHPOSS', 'AvgHPIE']].tail(1).reset_index()
+    testingaway = avgAwayStats[avgAwayStats['Team'] == opponent][
+        ['AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgAAST_PCT',
+         'AvgAAST_TO', 'AvgAAST_RATIO', 'AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT', 'AvgATM_TOV_PCT', 'AvgAEFG_PCT',
+         'AvgATS_PCT', 'AvgAE_PACE', 'AvgAPACE', 'AvgAPACE_PER40', 'AvgAPOSS', 'AvgAPIE']].tail(1).reset_index()
     testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
     testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
-    testing['Playoffs']=0
+    testing['Playoffs'] = 0
     completetesting = completetesting.append(testing)
-    completetesing=completetesting[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016', 'S2018',
- 'S2019', 'S2020', 'S2021','S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
- 'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
- 'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgHPF', 'AvgHFGM',
- 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB','AvgHAST', 'AvgHREB', 'AvgHSTL','Playoffs','AvgHAST_PCT','AvgHAST_TO', 'AvgHAST_RATIO','AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT',
-'AvgHTM_TOV_PCT', 'AvgHEFG_PCT','AvgHTS_PCT', 'AvgHE_PACE', 'AvgHPACE', 'AvgHPACE_PER40', 'AvgHPOSS', 'AvgHPIE','AvgAAST_PCT','AvgAAST_TO', 'AvgAAST_RATIO','AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT',
-                    'AvgATM_TOV_PCT', 'AvgAEFG_PCT','AvgATS_PCT', 'AvgAE_PACE', 'AvgAPACE', 'AvgAPACE_PER40', 'AvgAPOSS', 'AvgAPIE']]
+    completetesing = completetesting[
+        ['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016',
+         'S2018',
+         'S2019', 'S2020', 'S2021', 'S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score',
+         'Team_Last_Game_Score',
+         'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
+         'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgHPF', 'AvgHFGM',
+         'AvgHBLK', 'AvgHFG3M', 'AvgHOREB', 'AvgHAST', 'AvgHREB', 'AvgHSTL', 'Playoffs', 'AvgHAST_PCT', 'AvgHAST_TO',
+         'AvgHAST_RATIO', 'AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT',
+         'AvgHTM_TOV_PCT', 'AvgHEFG_PCT', 'AvgHTS_PCT', 'AvgHE_PACE', 'AvgHPACE', 'AvgHPACE_PER40', 'AvgHPOSS',
+         'AvgHPIE', 'AvgAAST_PCT', 'AvgAAST_TO', 'AvgAAST_RATIO', 'AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT',
+         'AvgATM_TOV_PCT', 'AvgAEFG_PCT', 'AvgATS_PCT', 'AvgAE_PACE', 'AvgAPACE', 'AvgAPACE_PER40', 'AvgAPOSS',
+         'AvgAPIE']]
 
     benchmark = [item[0] for item in models]
     if float(math.floor(float(list(bets[bets['Home Abbreviation'] == home]['Over-Under Scores'])[0]))) in benchmark:
@@ -1152,7 +1163,7 @@ for j in range(0, len(bets)):
         prob = models[modelindex][1].predict_proba(completetesting)[0][1]
         predicted.insert(j, [home, prob])
     else:
-        predicted.insert(j,[home,"skip"])
+        predicted.insert(j, [home, "skip"])
 
 predicted = pd.DataFrame(predicted).rename(columns={0: 'Team', 1: 'Prob'})
 predicted.sort_values('Prob', inplace=True, ascending=False)
@@ -1163,7 +1174,7 @@ placebet = """driver.find_element_by_xpath('//*[@id="betcard-container"]/div/div
 balance = driver.find_element_by_xpath('//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
 j = 0
 numgames = len(bets)
-gamesbet=[]
+gamesbet = []
 betcount = 1
 maxbets = 24
 betcounter = 0
@@ -1172,60 +1183,60 @@ betcounter = 0
 while betcounter <= maxbets:
     if numgames == 1:
         if predicted['Prob'][0] >= 0.5:
-            exec (betclick['Over Click'][0])
+            exec(betclick['Over Click'][0])
             time.sleep(random.uniform(2, 5))
-            exec (click[1][0])
+            exec(click[1][0])
             time.sleep(random.uniform(2, 5))
-            exec (bet)
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             for i in range(0, 5):
                 try:
-                    exec (placebet)  # accept
+                    exec(placebet)  # accept
                     time.sleep(random.uniform(1, 3))
                     newbalance = driver.find_element_by_xpath(
                         '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
                 except:
                     pass
         else:
-            exec (betclick['Under Click'][0])
+            exec(betclick['Under Click'][0])
             time.sleep(random.uniform(2, 5))
             # Underdog-Favorite
-            exec (click[1][0])
+            exec(click[1][0])
             time.sleep(random.uniform(2, 5))
-            exec (bet)
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             for i in range(0, 5):
                 try:
-                    exec (placebet)  # accept # accept
+                    exec(placebet)  # accept # accept
                     time.sleep(random.uniform(1, 3))
                     newbalance = driver.find_element_by_xpath(
                         '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
                 except:
                     pass
         if predicted['Prob'][0] >= 0.5:
-            exec (betclick['Over Click'][0])
-            exec (click[0][0])
+            exec(betclick['Over Click'][0])
+            exec(click[0][0])
             time.sleep(random.uniform(2, 5))
-            exec (bet)
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             for i in range(0, 5):
                 try:
-                    exec (placebet)  # accept # accept
+                    exec(placebet)  # accept # accept
                     time.sleep(random.uniform(1, 3))
                     newbalance = driver.find_element_by_xpath(
                         '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
                 except:
                     pass
         else:
-            exec (betclick['Under Click'][0])
+            exec(betclick['Under Click'][0])
             time.sleep(random.uniform(2, 5))
-            exec (click[0][0])
+            exec(click[0][0])
             time.sleep(random.uniform(2, 5))
-            exec (bet)
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             for i in range(0, 5):
                 try:
-                    exec (placebet)  # accept  # accept
+                    exec(placebet)  # accept  # accept
                     time.sleep(random.uniform(1, 3))
                     newbalance = driver.find_element_by_xpath(
                         '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
@@ -1235,23 +1246,23 @@ while betcounter <= maxbets:
         if (numgames == 2):
             if predicted['Prob'][0] >= 0.5:
                 # Underdog-Favorite
-                exec (click[1][j])
+                exec(click[1][j])
                 for i in range(0, numgames):
                     if i != j:
                         time.sleep(random.uniform(2, 5))
-                        exec (click[0][i])
+                        exec(click[0][i])
                     else:
                         pass
             time.sleep(random.uniform(2, 5))
             # if model says bet over bet over
             if predicted['Prob'][0] >= 0.5:
-                exec (betclick['Over Click'][0])
+                exec(betclick['Over Click'][0])
                 time.sleep(random.uniform(2, 5))
                 # if model says bet over bet over
-                exec (bet)
+                exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
-                exec (placebet)  # accept  # accept
+                exec(placebet)  # accept  # accept
                 time.sleep(random.uniform(2, 5))
                 try:
                     driver.find_element_b5_xpath(
@@ -1263,14 +1274,14 @@ while betcounter <= maxbets:
             # Underdogs
             for k in range(0, numgames):
                 time.sleep(random.uniform(2, 5))
-                exec (click[1][k])
-            exec (betclick['Under Click'][0])
+                exec(click[1][k])
+            exec(betclick['Under Click'][0])
             time.sleep(random.uniform(2, 5))
-            exec (betclick['Under Click'][1])
-            exec (bet)
+            exec(betclick['Under Click'][1])
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
-                exec (placebet)  # accept  # accept
+                exec(placebet)  # accept  # accept
                 time.sleep(random.uniform(2, 5))
                 try:
                     driver.find_element_by_xpath(
@@ -1283,14 +1294,14 @@ while betcounter <= maxbets:
                 # Favorites
             for i in range(0, numgames):
                 time.sleep(random.uniform(2, 5))
-                exec (click[0][i])
-            exec (betclick['Under Click'][0])
+                exec(click[0][i])
+            exec(betclick['Under Click'][0])
             time.sleep(random.uniform(2, 5))
-            exec (betclick['Under Click'][1])
-            exec (bet)
+            exec(betclick['Under Click'][1])
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
-                exec (placebet)  # accept
+                exec(placebet)  # accept
                 time.sleep(random.uniform(2, 5))
                 try:
                     driver.find_element_by_xpath(
@@ -1301,19 +1312,19 @@ while betcounter <= maxbets:
                 pass
 
             # Favorite - Underdog
-            exec (click[0][j])
+            exec(click[0][j])
             for i in range(0, numgames):
                 if i != j:
                     time.sleep(random.uniform(2, 5))
-                    exec (click[1][i])
+                    exec(click[1][i])
                 else:
                     pass
-            exec (betclick['Under Click'][0])
-            exec (betclick['Under Click'][1])
-            exec (bet)
+            exec(betclick['Under Click'][0])
+            exec(betclick['Under Click'][1])
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
-                exec (placebet)  # accept
+                exec(placebet)  # accept
                 time.sleep(random.uniform(2, 5))
                 try:
                     driver.find_element_by_xpath(
@@ -1339,17 +1350,17 @@ while betcounter <= maxbets:
                     team = predicted.loc[a]['Team']
                     teamposition = click[2].index(team)
                     if predicted['Prob'][a] >= 0.50:
-                        exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
                     if predicted['Prob'][a] < 0.50:
-                        exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))  # Underdog-Favorite
                     if (predicted['Prob'][a] < 0.50) | (predicted['Prob'][a] >= 0.50):
                         time.sleep(random.uniform(2, 5))
-                        exec (click[1][teamposition])
+                        exec(click[1][teamposition])
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
@@ -1357,27 +1368,26 @@ while betcounter <= maxbets:
                         gamesindex = [item for item in gamesindex if item not in gamesbet]
                         secondgame = list(bets[bets['Home Abbreviation'] != team].index)
                         for l in secondgame:
-                            secondgameteam=bets.loc[random.choice(list(bets.index))]['Home Abbreviation']
+                            secondgameteam = bets.loc[random.choice(list(bets.index))]['Home Abbreviation']
                             if (team != secondgameteam) & (l not in gamesbet) & (l != a):
                                 time.sleep(random.uniform(2, 5))
                                 driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                                 time.sleep(random.uniform(2, 5))
-                                exec (click[0][l])
+                                exec(click[0][l])
                                 time.sleep(random.uniform(2, 5))
                                 driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                                 gamesbet.insert(0, l)
                                 break
                             else:
-                                revisedsecondgame=list(bets[bets['Home Abbreviation'] != secondgameteam].index)
-                                revisedsecondteam=bets.loc[random.choice(list(bets.index))]['Home Abbreviation']
-
+                                revisedsecondgame = list(bets[bets['Home Abbreviation'] != secondgameteam].index)
+                                revisedsecondteam = bets.loc[random.choice(list(bets.index))]['Home Abbreviation']
 
                         # if model says bet over bet over
-                        exec (bet)
+                        exec(bet)
                         time.sleep(random.uniform(2, 5))
                         for i in range(0, 5):
                             try:
-                                exec (placebet)  # accept
+                                exec(placebet)  # accept
                                 time.sleep(random.uniform(1, 3))
                                 newbalance = driver.find_element_by_xpath(
                                     '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
@@ -1387,26 +1397,26 @@ while betcounter <= maxbets:
                         time.sleep(random.uniform(10, 15))
                     # Underdogs
                     if predicted['Prob'][a] >= 0.50:
-                        exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if predicted['Prob'][a] < 0.50:
-                        exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                        exec (click[1][teamposition])
+                        exec(click[1][teamposition])
                         time.sleep(random.uniform(5, 7))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(5, 7))
-                        exec (click[1][gamesbet[0]])
+                        exec(click[1][gamesbet[0]])
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
-                        exec (bet)
+                        exec(bet)
                         time.sleep(random.uniform(2, 5))
                         time.sleep(random.uniform(2, 5))
                         #                                bets[bets['Home Abbreviation']==team]['']
                         for i in range(0, 5):
                             try:
-                                exec (placebet)  # accept
+                                exec(placebet)  # accept
                                 time.sleep(random.uniform(1, 3))
                                 newbalance = driver.find_element_by_xpath(
                                     '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
@@ -1416,25 +1426,25 @@ while betcounter <= maxbets:
                         time.sleep(random.uniform(10, 15))
                         # Favorites
                     if predicted['Prob'][a] >= 0.50:
-                        exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if predicted['Prob'][a] < 0.50:
-                        exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     time.sleep(random.uniform(2, 5))
                     if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
-                        exec (click[0][gamesbet[0]])
+                        exec(click[0][gamesbet[0]])
                         time.sleep(random.uniform(5, 6))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(5, 6))
-                        exec (click[0][teamposition])
+                        exec(click[0][teamposition])
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
-                        exec (bet)
+                        exec(bet)
                         time.sleep(random.uniform(1, 3))
                         for i in range(0, 5):
                             try:
-                                exec (placebet)  # accept
+                                exec(placebet)  # accept
                                 time.sleep(random.uniform(1, 3))
                                 newbalance = driver.find_element_by_xpath(
                                     '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
@@ -1445,25 +1455,25 @@ while betcounter <= maxbets:
 
                     # Favorite - Underdog
                     if predicted['Prob'][a] > 0.50:
-                        exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if predicted['Prob'][a] <= 0.50:
-                        exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
-                        exec (click[1][gamesbet[0]])
+                        exec(click[1][gamesbet[0]])
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                        exec (click[0][teamposition])
+                        exec(click[0][teamposition])
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                        exec (bet)
+                        exec(bet)
                         time.sleep(random.uniform(2, 5))
                         time.sleep(random.uniform(2, 5))
                         for i in range(0, 5):
                             try:
-                                exec (placebet)  # accept
+                                exec(placebet)  # accept
                                 time.sleep(random.uniform(1, 3))
                                 newbalance = driver.find_element_by_xpath(
                                     '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
@@ -1476,27 +1486,25 @@ while betcounter <= maxbets:
     driver.close()
 
 
-
-
-
 def matched(str):
-count = 0
-for i in str:
-    if i == "[":
-        count += 1
-    elif i == "]":
-        count -= 1
-    if count < 0:
-        return False
-return count == 0
+    count = 0
 
 
-#nbadatamodel = pd.read_csv(directory1+'nbadatamodel.csv',low_memory=False)
+# for i in str:
+#     if i == "[":
+#         count += 1
+#     elif i == "]":
+#         count -= 1
+#     if count < 0:
+#         return False
+# return count == 0
+
+# nbadatamodel = pd.read_csv(directory1+'nbadatamodel.csv',low_memory=False)
 
 teamavgH = []
 teamavgHdf = pd.DataFrame()
 for s in list(nbadata['Season Year'].unique()):
-tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'H') & (nbadata['MIN'] > 0)]
+    tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'H') & (nbadata['MIN'] > 0)]
 teamtemp = list(tempseason['TEAM_ABBREVIATION'].unique())
 for team in teamtemp:
     a = tempseason[(tempseason['TEAM_ABBREVIATION'] == team)]
@@ -1513,7 +1521,7 @@ for team in teamtemp:
 teamavgH = []
 teamavgHdf = pd.DataFrame()
 for s in list(nbadata['Season Year'].unique()):
-tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'H') & (nbadata['MIN'] > 0)]
+    tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'H') & (nbadata['MIN'] > 0)]
 teamtemp = list(tempseason['TEAM_ABBREVIATION'].unique())
 for team in teamtemp:
     a = tempseason[(tempseason['TEAM_ABBREVIATION'] == team)]
@@ -1531,28 +1539,28 @@ avgHomeStats = []
 avgHomeStats = pd.DataFrame()
 
 for s in list(teamavgHdf['Season'].unique()):
-for i in list(teamavgHdf['TEAM_ABBREVIATION'].unique()):
-    try:
-        tempscoring = teamavgHdf[
-            (teamavgHdf['TEAM_ABBREVIATION'] == i) & ((teamavgHdf['Season'] == s))].reset_index()
-    except:
-        tempscoring = teamavgHdf[(teamavgHdf['TEAM_ABBREVIATION'] == i) & ((teamavgAHf['Season'] == s))].drop(
-            'level_0', axis=1).reset_index()
-    for j in range(6, len(tempscoring)):
-        tempmean = tempscoring.loc[j - 3:j - 1]
-        gamedate = tempscoring['Gamedate'][j]
-        tempmean = tempmean.groupby("Team", as_index=True)[
-            'AvgHPF', 'AvgHFGM', 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB', 'AvgHAST', 'AvgHREB', 'AvgHSTL'].mean()
-        tempmean = tempmean.reset_index()
-        tempmean['Gamedate'] = gamedate
-        tempmean['Season'] = s
-        avgHomeStats = avgHomeStats.append(tempmean)
+    for i in list(teamavgHdf['TEAM_ABBREVIATION'].unique()):
+        try:
+            tempscoring = teamavgHdf[
+                (teamavgHdf['TEAM_ABBREVIATION'] == i) & ((teamavgHdf['Season'] == s))].reset_index()
+        except:
+            tempscoring = teamavgHdf[(teamavgHdf['TEAM_ABBREVIATION'] == i) & ((teamavgAHf['Season'] == s))].drop(
+                'level_0', axis=1).reset_index()
+        for j in range(6, len(tempscoring)):
+            tempmean = tempscoring.loc[j - 3:j - 1]
+            gamedate = tempscoring['Gamedate'][j]
+            tempmean = tempmean.groupby("Team", as_index=True)[
+                'AvgHPF', 'AvgHFGM', 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB', 'AvgHAST', 'AvgHREB', 'AvgHSTL'].mean()
+            tempmean = tempmean.reset_index()
+            tempmean['Gamedate'] = gamedate
+            tempmean['Season'] = s
+            avgHomeStats = avgHomeStats.append(tempmean)
 
 avgHomeStats = avgHomeStats.reset_index()
 
 teamavgAdf = pd.DataFrame()
 for s in list(nbadata['Season Year'].unique()):
-tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'A') & (nbadata['MIN'] > 0)]
+    tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'A') & (nbadata['MIN'] > 0)]
 teamtemp = list(tempseason['TEAM_ABBREVIATION'].unique())
 for team in teamtemp:
     a = tempseason[(tempseason['TEAM_ABBREVIATION'] == team)]
@@ -1570,22 +1578,22 @@ avgAwayStats = []
 avgAwayStats = pd.DataFrame()
 
 for s in list(teamavgAdf['Season'].unique()):
-for i in list(teamavgAdf['TEAM_ABBREVIATION'].unique()):
-    try:
-        tempscoring = teamavgAdf[
-            (teamavgAdf['TEAM_ABBREVIATION'] == i) & ((teamavgAdf['Season'] == s))].reset_index()
-    except:
-        tempscoring = teamavgAdf[(teamavgAdf['TEAM_ABBREVIATION'] == i) & ((teamavgAdf['Season'] == s))].drop(
-            'level_0', axis=1).reset_index()
-    for j in range(6, len(tempscoring)):
-        tempmean = tempscoring.loc[j - 3:j - 1]
-        gamedate = tempscoring['Gamedate'][j]
-        tempmean = tempmean.groupby("Team", as_index=True)[
-            'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL'].mean()
-        tempmean = tempmean.reset_index()
-        tempmean['Gamedate'] = gamedate
-        tempmean['Season'] = s
-        avgAwayStats = avgAwayStats.append(tempmean)
+    for i in list(teamavgAdf['TEAM_ABBREVIATION'].unique()):
+        try:
+            tempscoring = teamavgAdf[
+                (teamavgAdf['TEAM_ABBREVIATION'] == i) & ((teamavgAdf['Season'] == s))].reset_index()
+        except:
+            tempscoring = teamavgAdf[(teamavgAdf['TEAM_ABBREVIATION'] == i) & ((teamavgAdf['Season'] == s))].drop(
+                'level_0', axis=1).reset_index()
+        for j in range(6, len(tempscoring)):
+            tempmean = tempscoring.loc[j - 3:j - 1]
+            gamedate = tempscoring['Gamedate'][j]
+            tempmean = tempmean.groupby("Team", as_index=True)[
+                'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL'].mean()
+            tempmean = tempmean.reset_index()
+            tempmean['Gamedate'] = gamedate
+            tempmean['Season'] = s
+            avgAwayStats = avgAwayStats.append(tempmean)
 
 avgAwayStats = avgAwayStats.reset_index()
 
@@ -1599,7 +1607,7 @@ avgHomeStats = avgHomeStats.drop(['Season', 'Gamedate'], axis=1)
 teamavgA = []
 teamavgAdf = pd.DataFrame()
 for s in list(nbadata['Season Year'].unique()):
-tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'A') & (nbadata['MIN'] > 0)]
+    tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'A') & (nbadata['MIN'] > 0)]
 teamtemp = list(tempseason['TEAM_ABBREVIATION'].unique())
 for team in teamtemp:
     a = tempseason[(tempseason['TEAM_ABBREVIATION'] == team)]
@@ -1614,31 +1622,30 @@ for team in teamtemp:
     a['Team'] = team
     teamavgAdf = teamavgAdf.append(a)
 
-
 teamscoring = schedule.sort_values(['AWAY_TEAM_ABBREVIATION', 'start_time']).filter(
-['away_team_score', 'AWAY_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year']).rename(
-columns={'away_team_score': 'home_team_score', 'AWAY_TEAM_ABBREVIATION': 'HOME_TEAM_ABBREVIATION'}).append(
-schedule.sort_values(['HOME_TEAM_ABBREVIATION', 'start_time']).filter(
-    ['home_team_score', 'HOME_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year'])).sort_values(
-['HOME_TEAM_ABBREVIATION', 'start_time']).rename(
-columns={'home_team_score': 'Team_Score', 'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION'}).drop_duplicates()
+    ['away_team_score', 'AWAY_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year']).rename(
+    columns={'away_team_score': 'home_team_score', 'AWAY_TEAM_ABBREVIATION': 'HOME_TEAM_ABBREVIATION'}).append(
+    schedule.sort_values(['HOME_TEAM_ABBREVIATION', 'start_time']).filter(
+        ['home_team_score', 'HOME_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year'])).sort_values(
+    ['HOME_TEAM_ABBREVIATION', 'start_time']).rename(
+    columns={'home_team_score': 'Team_Score', 'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION'}).drop_duplicates()
 
 teamscoring2 = pd.DataFrame()
 
 for s in list(teamscoring['Season Year'].unique()):
-for i in list(teamscoring['TEAM_ABBREVIATION'].unique()):
-    try:
-        tempscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == i) & (teamscoring['Season Year'] == s)].drop(
-            'level_0', axis=1).reset_index()
-    except:
-        tempscoring = teamscoring[
-            (teamscoring['TEAM_ABBREVIATION'] == i) & (teamscoring['Season Year'] == s)].reset_index()
-    try:
-        tempscoring['Last_Game_Score'] = tempscoring['Team_Score'].shift(1)
-        tempscoring['Last_Game_Score'].iloc[0] = np.mean(tempscoring[tempscoring['Season Year'] == s]['Team_Score'])
-        teamscoring2 = teamscoring2.append(tempscoring)
-    except:
-        pass
+    for i in list(teamscoring['TEAM_ABBREVIATION'].unique()):
+        try:
+            tempscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == i) & (teamscoring['Season Year'] == s)].drop(
+                'level_0', axis=1).reset_index()
+        except:
+            tempscoring = teamscoring[
+                (teamscoring['TEAM_ABBREVIATION'] == i) & (teamscoring['Season Year'] == s)].reset_index()
+        try:
+            tempscoring['Last_Game_Score'] = tempscoring['Team_Score'].shift(1)
+            tempscoring['Last_Game_Score'].iloc[0] = np.mean(tempscoring[tempscoring['Season Year'] == s]['Team_Score'])
+            teamscoring2 = teamscoring2.append(tempscoring)
+        except:
+            pass
 
 teamscoring = teamscoring2.drop_duplicates()
 
@@ -1649,22 +1656,22 @@ teamscoring.dropna()
 avgrollteamscore = []
 
 for s in list(teamscoring['Season Year'].unique()):
-for i in list(teamscoring['TEAM_ABBREVIATION'].unique()):
-    try:
-        tempscoring = teamscoring[
-            (teamscoring['TEAM_ABBREVIATION'] == i) & ((teamscoring['Season Year'] == s))].reset_index()
-    except:
-        tempscoring = teamscoring[
-            (teamscoring['TEAM_ABBREVIATION'] == i) & ((teamscoring['Season Year'] == s))].drop('level_0',
-                                                                                                axis=1).reset_index()
-    for j in range(6, len(tempscoring)):
-        tempmean = tempscoring.loc[j - 3:j - 1]
-        gamedate = tempscoring['start_time'][j]
-        tempmean = np.mean(tempmean['Team_Score'])
-        avgrollteamscore.insert(0, [i, s, gamedate, tempmean])
+    for i in list(teamscoring['TEAM_ABBREVIATION'].unique()):
+        try:
+            tempscoring = teamscoring[
+                (teamscoring['TEAM_ABBREVIATION'] == i) & ((teamscoring['Season Year'] == s))].reset_index()
+        except:
+            tempscoring = teamscoring[
+                (teamscoring['TEAM_ABBREVIATION'] == i) & ((teamscoring['Season Year'] == s))].drop('level_0',
+                                                                                                    axis=1).reset_index()
+        for j in range(6, len(tempscoring)):
+            tempmean = tempscoring.loc[j - 3:j - 1]
+            gamedate = tempscoring['start_time'][j]
+            tempmean = np.mean(tempmean['Team_Score'])
+            avgrollteamscore.insert(0, [i, s, gamedate, tempmean])
 
 avgrollteamscore = pd.DataFrame(avgrollteamscore).rename(
-columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
+    columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
 
 avgrollteamscore['Month'] = avgrollteamscore['Date'].str[5:7].apply(int)
 
@@ -1673,26 +1680,26 @@ avgrollteamscore['avgID'] = avgrollteamscore['TEAM_ABBREVIATION'] + avgrollteams
 avgrollteamscore = avgrollteamscore.filter(['avgID', 'Avg Score']).drop_duplicates()
 
 totalscoring = schedule.sort_values(['HOME_TEAM_ABBREVIATION', 'start_time']).filter(
-['HOME_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year']).rename(
-columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION'}).drop_duplicates().append((schedule.filter(
-['AWAY_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year']).sort_values(
-['AWAY_TEAM_ABBREVIATION', 'start_time']).rename(
-columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION'}))).drop_duplicates()
+    ['HOME_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year']).rename(
+    columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION'}).drop_duplicates().append((schedule.filter(
+    ['AWAY_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year']).sort_values(
+    ['AWAY_TEAM_ABBREVIATION', 'start_time']).rename(
+    columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION'}))).drop_duplicates()
 
 avgrolltotalscore = []
 
 for s in list(totalscoring['Season Year'].unique()):
-for i in list(totalscoring['TEAM_ABBREVIATION'].unique()):
-    tempscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == i) & (
+    for i in list(totalscoring['TEAM_ABBREVIATION'].unique()):
+        tempscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == i) & (
                 totalscoring['Season Year'] == s)].reset_index().drop_duplicates().drop('index', axis=1)
-    for j in range(6, len(tempscoring)):
-        tempmean = tempscoring.loc[j - 3:j - 1]
-        gamedate = tempscoring['start_time'][j]
-        tempmean = np.mean(tempmean['TotalScore'])
-        avgrolltotalscore.insert(0, [i, s, gamedate, tempmean])
+        for j in range(6, len(tempscoring)):
+            tempmean = tempscoring.loc[j - 3:j - 1]
+            gamedate = tempscoring['start_time'][j]
+            tempmean = np.mean(tempmean['TotalScore'])
+            avgrolltotalscore.insert(0, [i, s, gamedate, tempmean])
 
 avgrolltotalscore = pd.DataFrame(avgrolltotalscore).rename(
-columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
+    columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
 
 avgrolltotalscore['Month'] = avgrolltotalscore['Date'].str[5:7].apply(int)  # use for gamedate
 
@@ -1720,16 +1727,16 @@ avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score', 'Month']).dr
 #         except:
 #             pass
 
-#playeraverages=pd.DataFrame(averageadjust)
-#playeraverages.to_csv('/Users/Quaye/Desktop/Work In Progress/PlayerAverages.csv')
-#playeraverages = pd.read_excel('/Users/Quaye/Desktop/Work in Progress/PlayerAverages.csv',low_memory=False)
-#playeraverages = playeraverages.rename(columns={0: 'PLAYER_ID', 1: 'Opponent', 2: 'HomeAvg', 3: 'AwayAvg'})
-#playeraverages['ModelID'] = playeraverages['PLAYER_ID'].astype(str) + playeraverages['Opponent'].astype(str)
-#nbadatamodel['ID'] = nbadatamodel['PLAYER_ID'].astype(str) + nbadatamodel['Opponent'].astype(str)
-#playeraverages = playeraverages.drop('Opponent', axis=1).drop('PLAYER_ID', axis=1)
+# playeraverages=pd.DataFrame(averageadjust)
+# playeraverages.to_csv('/Users/Quaye/Desktop/Work In Progress/PlayerAverages.csv')
+# playeraverages = pd.read_excel('/Users/Quaye/Desktop/Work in Progress/PlayerAverages.csv',low_memory=False)
+# playeraverages = playeraverages.rename(columns={0: 'PLAYER_ID', 1: 'Opponent', 2: 'HomeAvg', 3: 'AwayAvg'})
+# playeraverages['ModelID'] = playeraverages['PLAYER_ID'].astype(str) + playeraverages['Opponent'].astype(str)
+# nbadatamodel['ID'] = nbadatamodel['PLAYER_ID'].astype(str) + nbadatamodel['Opponent'].astype(str)
+# playeraverages = playeraverages.drop('Opponent', axis=1).drop('PLAYER_ID', axis=1)
 
 nbadatamodel = nbadata
-nbadata=nbadata.drop('key_0',axis=1)
+nbadata = nbadata.drop('key_0', axis=1)
 
 # nbadatamodel['HomeAvg'] = nbadatamodel['HomeAvg'].fillna(
 #     np.mean(nbadata[(nbadata["H/A"] == "H") & (nbadata['MIN'] > 10)]['PTS'] / 2))
@@ -1739,52 +1746,52 @@ nbadata=nbadata.drop('key_0',axis=1)
 tfdata = pd.DataFrame()
 
 nbadatamodel = nbadatamodel.rename(
-columns={'TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'Gamedate_x': 'Gamedate', 'Season Year_x': 'Season Year'})
+    columns={'TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'Gamedate_x': 'Gamedate', 'Season Year_x': 'Season Year'})
 
 for team in nbadatamodel['TEAM_ABBREVIATION'].unique():
-traindatatemp = pd.DataFrame()
+    traindatatemp = pd.DataFrame()
 traindata = nbadatamodel[(nbadatamodel['TEAM_ABBREVIATION'] == team) & (nbadatamodel['H/A'] == 'H')]
 for game in traindata['Gamedate'].unique():
-        teamdata = traindata[(traindata['Gamedate'] == game)]
-        totscore = teamdata['TotalScore'].iloc[0]
-        Opponent = traindata[(traindata['Gamedate'] == game)]['Opponent'].unique()[0]
-        Opponentdf = nbadatamodel[
-            (nbadatamodel['TEAM_ABBREVIATION'] == Opponent) & (nbadatamodel['Gamedate'] == game)]
-        players = pd.DataFrame()
-        # for k in teamdata['PLAYER_ID'].unique():
-        #     playerstemp = (teamdata[teamdata['PLAYER_ID'] == k])['HomeAvg'].reset_index().drop('index', axis=1)
-        #     playerstemp = playerstemp.rename(
-        #         columns={'HomeAvg': 'HomeAvg' + str(list(teamdata['PLAYER_ID'].unique()).index(k))})
-        #     players = pd.concat([players, playerstemp], axis=1)
-        # players = players.sort_values(by=0, ascending=False, axis=1)
-        # for j in Opponentdf['PLAYER_ID'].unique():
-        #     oplayerstemp = Opponentdf[Opponentdf['PLAYER_ID'] == j]['AwayAvg'].reset_index().drop('index', axis=1)
-        #     oplayerstemp = oplayerstemp.rename(
-        #         columns={'AwayAvg': 'AwayAvg' + str(list(Opponentdf['PLAYER_ID'].unique()).index(j))})
-        #     players = pd.concat([players, oplayerstemp, ], axis=1)
-        # playerstemp = players.values
-        # playerstemp = np.sort(playerstemp)
-        # playerstemp = playerstemp[:, ::-1]
-        # players = pd.DataFrame(playerstemp, players.index,
-        #                        columns=['HomeAvg0', 'HomeAvg1', 'HomeAvg2', 'HomeAvg3', 'HomeAvg4', 'AwayAvg0',
-        #                                 'AwayAvg1', 'AwayAvg2', 'AwayAvg3', 'AwayAvg4'])
-        players[['HomeDaysRest', 'Team Rank', 'ConferenceBinary', 'Opponent Rank', 'OpponentConferenceBinary',
-                 'Season Year']] = teamdata.reset_index()[
-            ['HomeDaysRest', 'Team Rank', 'ConferenceBinary', 'Opponent Rank', 'OpponentConferenceBinary',
-             'Season Year']]  # Add ,'AST','REB','TOV','STL', 'BLK','PF'
-        players['AwayDaysRest'] = Opponentdf.reset_index()['HomeDaysRest'][0]
-        players['Gamedate'] = game
-        players['Team'] = team
-        players['Opponent'] = Opponent
-        players['TotalScore'] = totscore
-        # if len(players.columns) < 18:
-        #     pass
-        # else:
-        tfdata = tfdata.append(players)
-    # except:
+    teamdata = traindata[(traindata['Gamedate'] == game)]
+    totscore = teamdata['TotalScore'].iloc[0]
+    Opponent = traindata[(traindata['Gamedate'] == game)]['Opponent'].unique()[0]
+    Opponentdf = nbadatamodel[
+        (nbadatamodel['TEAM_ABBREVIATION'] == Opponent) & (nbadatamodel['Gamedate'] == game)]
+    players = pd.DataFrame()
+    # for k in teamdata['PLAYER_ID'].unique():
+    #     playerstemp = (teamdata[teamdata['PLAYER_ID'] == k])['HomeAvg'].reset_index().drop('index', axis=1)
+    #     playerstemp = playerstemp.rename(
+    #         columns={'HomeAvg': 'HomeAvg' + str(list(teamdata['PLAYER_ID'].unique()).index(k))})
+    #     players = pd.concat([players, playerstemp], axis=1)
+    # players = players.sort_values(by=0, ascending=False, axis=1)
+    # for j in Opponentdf['PLAYER_ID'].unique():
+    #     oplayerstemp = Opponentdf[Opponentdf['PLAYER_ID'] == j]['AwayAvg'].reset_index().drop('index', axis=1)
+    #     oplayerstemp = oplayerstemp.rename(
+    #         columns={'AwayAvg': 'AwayAvg' + str(list(Opponentdf['PLAYER_ID'].unique()).index(j))})
+    #     players = pd.concat([players, oplayerstemp, ], axis=1)
+    # playerstemp = players.values
+    # playerstemp = np.sort(playerstemp)
+    # playerstemp = playerstemp[:, ::-1]
+    # players = pd.DataFrame(playerstemp, players.index,
+    #                        columns=['HomeAvg0', 'HomeAvg1', 'HomeAvg2', 'HomeAvg3', 'HomeAvg4', 'AwayAvg0',
+    #                                 'AwayAvg1', 'AwayAvg2', 'AwayAvg3', 'AwayAvg4'])
+    players[['HomeDaysRest', 'Team Rank', 'ConferenceBinary', 'Opponent Rank', 'OpponentConferenceBinary',
+             'Season Year']] = teamdata.reset_index()[
+        ['HomeDaysRest', 'Team Rank', 'ConferenceBinary', 'Opponent Rank', 'OpponentConferenceBinary',
+         'Season Year']]  # Add ,'AST','REB','TOV','STL', 'BLK','PF'
+    players['AwayDaysRest'] = Opponentdf.reset_index()['HomeDaysRest'][0]
+    players['Gamedate'] = game
+    players['Team'] = team
+    players['Opponent'] = Opponent
+    players['TotalScore'] = totscore
+    # if len(players.columns) < 18:
     #     pass
+    # else:
+    tfdata = tfdata.append(players)
+# except:
+#     pass
 
-tfdata=tfdata.drop_duplicates()
+tfdata = tfdata.drop_duplicates()
 tfdata = tfdata.reset_index()
 tfdatakeep = tfdata
 
@@ -1800,13 +1807,13 @@ teamscoring = teamscoring.reset_index()
 teamscoring = teamscoring.filter(['avgID', 'Last_Game_Score']).drop_duplicates()
 
 tfdata2 = pd.merge(tfdata, teamscoring, left_on=tfdata['avgIDmain'], right_on=teamscoring['avgID'], how='left').rename(
-columns={'avgID_x': 'avgID', 'Last_Game_Score': 'Team_Last_Game_Score'})
+    columns={'avgID_x': 'avgID', 'Last_Game_Score': 'Team_Last_Game_Score'})
 
 tfdata2 = tfdata2.drop('key_0', axis=1)
 
 tfdata3 = pd.merge(tfdata2, teamscoring, left_on=tfdata2['avgID2main'], right_on=teamscoring['avgID'],
-               how='left').rename(columns={'avgID_x': 'avgID', 'Last_Game_Score': 'Opponent_Last_Game_Score'}).drop(
-'avgID_y', axis=1)
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Last_Game_Score': 'Opponent_Last_Game_Score'}).drop(
+    'avgID_y', axis=1)
 
 tfdata3 = tfdata3.drop_duplicates()
 
@@ -1815,34 +1822,34 @@ avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score']).drop_duplic
 tfdata3 = tfdata3.drop('key_0', axis=1)
 
 tfdata4 = pd.merge(tfdata3, avgrollteamscore, left_on=tfdata3['avgIDmain'], right_on=avgrollteamscore['avgID'],
-               how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Team_Score'}).dropna()
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Team_Score'}).dropna()
 
 tfdata4 = tfdata4.drop('key_0', axis=1)
 
 tfdata5 = pd.merge(tfdata4, avgrollteamscore, left_on=tfdata4['avgID2main'], right_on=avgrollteamscore['avgID'],
-               how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Team_Score'}).dropna()
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Team_Score'}).dropna()
 
 tfdata5 = tfdata5.drop('key_0', axis=1)
 
 avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score']).drop_duplicates()
 
 tfdata6 = pd.merge(tfdata5, avgrolltotalscore, left_on=tfdata5['avgIDmain'], right_on=avgrolltotalscore['avgID'],
-               how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Team_Total_Score'}).dropna()
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Team_Total_Score'}).dropna()
 
 tfdata6 = tfdata6.drop('key_0', axis=1)
 
 tfdata7 = pd.merge(tfdata6, avgrolltotalscore, left_on=tfdata6['avgID2main'], right_on=avgrolltotalscore['avgID'],
-               how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
 
 tfdata7 = tfdata7.drop('key_0', axis=1)
 
 tfdata8 = pd.merge(tfdata7, avgHomeStats, left_on=tfdata7['avgIDmain'], right_on=avgHomeStats['avgID'],
-               how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
 
 tfdata8 = tfdata8.drop('key_0', axis=1)
 
 tfdata9 = pd.merge(tfdata8, avgAwayStats, left_on=tfdata8['avgID2main'], right_on=avgAwayStats['avgID'],
-               how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
 
 traindata = tfdata9
 testdata = traindata[traindata['Gamedate'] > '2021-02-28']
@@ -1878,24 +1885,25 @@ testdata['S2020'] = (np.where(testdata['Season Year'] == '2020', 1, 0))
 testdata['S2021'] = (np.where(testdata['Season Year'] == '2021', 1, 0))
 testdata = testdata.drop('Season Year', axis=1)
 
-
 tfdata = traindata[[
-'HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016', 'S2018',
- 'S2019', 'S2020', 'S2021', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
- 'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
- 'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgHPF', 'AvgHFGM',
- 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB',
- 'AvgHAST', 'AvgHREB', 'AvgHSTL','AST_PCT','AST_TO', 'AST_RATIO','OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT',
-'EFG_PCT','TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE']]  # Season Year can remove due to taking average of scores.
+    'HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016', 'S2018',
+    'S2019', 'S2020', 'S2021', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
+    'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
+    'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgHPF', 'AvgHFGM',
+    'AvgHBLK', 'AvgHFG3M', 'AvgHOREB',
+    'AvgHAST', 'AvgHREB', 'AvgHSTL', 'AST_PCT', 'AST_TO', 'AST_RATIO', 'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT',
+    'EFG_PCT', 'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS',
+    'PIE']]  # Season Year can remove due to taking average of scores.
 
 tftest = testdata[[
-'HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016', 'S2018',
- 'S2019', 'S2020', 'S2021', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
- 'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
- 'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgHPF', 'AvgHFGM',
- 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB',
- 'AvgHAST', 'AvgHREB', 'AvgHSTL','AST_PCT','AST_TO', 'AST_RATIO','OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT',
-'EFG_PCT','TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE']]  # Season Year can remove due to taking average of scores.]]  # Season Year can remove due to taking average of scores.
+    'HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016', 'S2018',
+    'S2019', 'S2020', 'S2021', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
+    'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
+    'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgHPF', 'AvgHFGM',
+    'AvgHBLK', 'AvgHFG3M', 'AvgHOREB',
+    'AvgHAST', 'AvgHREB', 'AvgHSTL', 'AST_PCT', 'AST_TO', 'AST_RATIO', 'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT',
+    'EFG_PCT', 'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS',
+    'PIE']]  # Season Year can remove due to taking average of scores.]]  # Season Year can remove due to taking average of scores.
 
 models = []
 scores = []
@@ -1906,19 +1914,19 @@ cutpoints = [math.floor(float(x)) for x in cutpoints]
 # cutpoints = [226,227,231,220]
 
 for cut in cutpoints:
-#    Target=np.where(TotalScore>float(cut),1,0)
 Target = np.where(TrainScore > float(cut), 1, 0)
 TestTarget = np.where(TestScore > float(cut), 1, 0)
-#X_train, X_test, y_train, y_test = train_test_split(tfdata, Target, test_size=0.3, random_state=1)
+# X_train, X_test, y_train, y_test = train_test_split(tfdata, Target, test_size=0.3, random_state=1)
 X_train = tfdata
 y_train = Target
 estimators = 4000
 param_test = {'max_depth': (1, 5, 10, 15), 'subsample': (0.5, 0.6, 0.75, 0.8)}
 gsearch = GridSearchCV(
     estimator=GradientBoostingClassifier(learning_rate=0.01, n_estimators=estimators, max_features='sqrt',
-                                         subsample=0.8, random_state=10, validation_fraction=0.3,n_iter_no_change=5, tol=0.01),  # sqrt
+                                         subsample=0.8, random_state=10, validation_fraction=0.3, n_iter_no_change=5,
+                                         tol=0.01),  # sqrt
     param_grid=param_test, scoring='accuracy', n_jobs=4, iid=False, cv=5)
-#est = GradientBoostingClassifier(n_estimators=estimators,max_features='sqrt', learning_rate=0.001,random_state=0).fit(X_train,y_train)
+# est = GradientBoostingClassifier(n_estimators=estimators,max_features='sqrt', learning_rate=0.001,random_state=0).fit(X_train,y_train)
 fitmodel = gsearch.fit(X_train, y_train)
 
 score = fitmodel.score(tftest, TestTarget)
@@ -1929,7 +1937,7 @@ scores.insert(cutpoints.index(cut), [score, cut])
 fitmodel.best_estimator_.predict(tftest)
 fitmodel.best_estimator_.predict(X_train)
 score = fitmodel.score(X_train, y_train)
-sum((fitmodel.predict_proba(tftest)[:,1] >= 0.05).astype(bool))
+sum((fitmodel.predict_proba(tftest)[:, 1] >= 0.05).astype(bool))
 list(fitmodel.predict_proba(tftest))
 sum(fitmodel.predict(tftest))
 TestTarget
@@ -1937,7 +1945,8 @@ TestTarget
 # 'AST':'sum','OREB':'sum', 'DREB':'sum', 'REB':'sum','TOV':'sum','STL':'sum', 'BLK':'sum','PF':'sum'
 
 # Access to Website and then information pull of daily games
-driver = webdriver.Chrome('/Users/kabariquaye/Desktop/chromedriver')  # need to have the right version of chromedriver installed on computer.
+driver = webdriver.Chrome(
+    '/Users/kabariquaye/Desktop/chromedriver')  # need to have the right version of chromedriver installed on computer.
 driver.get("https://www.sportsinteraction.com/basketball/nba-betting-lines/")
 # The gamedate to check if the games are today
 gamedatesi = driver.find_element_by_xpath('//*[@id="page"]/div[2]/div/ul/li[1]/h4').text
@@ -1954,36 +1963,36 @@ driver.find_element_by_xpath('//*[@id="header-container"]/span/div/div/div/span'
 driver.find_element_by_xpath('//*[@id="LoginForm__account-name"]').send_keys('kabariq@gmail.com')
 driver.find_element_by_xpath('//*[@id="LoginForm__password"]').send_keys('############')
 driver.find_element_by_xpath(
-'//*[@id="portals-container"]/div/div[1]/div/div[2]/div/content/div/div/div/form/button').click()
+    '//*[@id="portals-container"]/div/div[1]/div/div[2]/div/content/div/div/div/form/button').click()
 time.sleep(random.uniform(10, 20))
 try:
-driver.find_element_by_xpath('//*[@id="portals-container"]/div/div[1]/div[1]/div[2]/span').click()
+    driver.find_element_by_xpath('//*[@id="portals-container"]/div/div[1]/div[1]/div[2]/span').click()
 time.sleep(random.uniform(5, 10))
 except:
 pass
 driver.get("https://www.sportsinteraction.com/basketball/nba-betting-lines/")
 time.sleep(random.uniform(2, 5))
 balance = driver.find_element_by_xpath('//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
-balances=[]
-balances.insert(0,balance)
+balances = []
+balances.insert(0, balance)
 newbalance = balance
 account = []
 winslosses = []
 account.insert(len(account), [balance, datetime.datetime.today().strftime('%Y-%m-%d')])
 bot = pd.DataFrame(account).rename(columns={0: 'Account_Balance', 1: 'Date'})  # balance over time
-botfile = pd.read_excel(directory1+'BalanceOverTime.csv')
+botfile = pd.read_excel('BalanceOverTime.csv')
 
 botfile = botfile[['Account_Balance', 'Date']]
 
 # This should track daily activity
 if max(botfile['Date']) < datetime.datetime.today().strftime('%Y-%m-%d'):
-botfile = botfile.append(bot)
+    botfile = botfile.append(bot)
 else:
-pass
+    pass
 
 botfile = botfile[['Account_Balance', 'Date']]
 
-botfile.to_csv(directory1+'BalanceOverTime.csv')
+botfile.to_csv('BalanceOverTime.csv')
 
 betgamesodds = []
 betgameclick = []
@@ -2095,53 +2104,49 @@ for i in range(0, 20):
 # DataFrame of Betgameodds
 bets = pd.DataFrame(betgamesodds)
 
-
-
 # Rename Columns
 bets = bets.rename(
-columns={0: 'Over-Under Odds', 1: 'Over-Under Scores', 2: 'Home Team', 3: 'Away Team', 4: 'Home Odds',
-         5: 'Away Odds'})
+    columns={0: 'Over-Under Odds', 1: 'Over-Under Scores', 2: 'Home Team', 3: 'Away Team', 4: 'Home Odds',
+             5: 'Away Odds'})
 bets = bets.reset_index().drop('index', axis=1)
 
-if sum(bets['Over-Under Scores']<150)>0:
-client = Client('AC468cf84e2201587130c09aece683217d', 'e6af6bf9426b51ff9cfb1eb17ddb1a5f')
-message = client.messages.create(body = "OPPORTUNITY BETTING RIGHT NOW",from_ = '+14154944379',to = '+13065916701')
+if sum(bets['Over-Under Scores'] < 150) > 0:
+    client = Client('AC468cf84e2201587130c09aece683217d', 'e6af6bf9426b51ff9cfb1eb17ddb1a5f')
+message = client.messages.create(body="OPPORTUNITY BETTING RIGHT NOW", from_='+14154944379', to='+13065916701')
 
 bets['Date'] = datetime.datetime.today().strftime('%Y-%m-%d')
 
-savebets = pd.read_csv(directory1+'SaveBets.csv')
+savebets = pd.read_csv('SaveBets.csv')
 
 savebets = savebets[
-['Over-Under Odds', 'Over-Under Scores', 'Home Team', 'Away Team', 'Home Odds', 'Away Odds', 'Date', 'Difference']]
+    ['Over-Under Odds', 'Over-Under Scores', 'Home Team', 'Away Team', 'Home Odds', 'Away Odds', 'Date', 'Difference']]
 
 # This should track daily activity
 if max(savebets['Date']) < datetime.datetime.today().strftime('%Y-%m-%d'):
-savebets = savebets.append(bets)
+    savebets = savebets.append(bets)
 else:
-pass
+    pass
 
 savebets = savebets[
-['Over-Under Odds', 'Over-Under Scores', 'Home Team', 'Away Team', 'Home Odds', 'Away Odds', 'Date', 'Difference']]
+    ['Over-Under Odds', 'Over-Under Scores', 'Home Team', 'Away Team', 'Home Odds', 'Away Odds', 'Date', 'Difference']]
 
 savebets['Home Team'] = savebets['Home Team'].str.replace(" ", "_").str.upper()
 savebets['Away Team'] = savebets['Away Team'].str.replace(" ", "_").str.upper()
 
-
 simapping = pd.DataFrame(data={'Team': ['TORONTO_RAPTORS',
-                                    'BOSTON_CELTICS', 'LA_CLIPPERS', 'DENVER_NUGGETS', 'MIAMI_HEAT',
-                                    'GOLDEN_STATE_WARRIORS', 'PHOENIX_SUNS', 'CHARLOTTE_HORNETS',
-                                    'DALLAS_MAVERICKS', 'CHICAGO_BULLS', 'OKLAHOMA_CITY', 'HOUSTON_ROCKETS',
-                                    'CLEVELAND_CAVALIERS', 'UTAH_JAZZ', 'BROOKLYN_NETS', 'DETROIT_PISTONS',
-                                    'MINNESOTA_TIMBERWOLVES', 'NEW_ORLEANS_PELICANS', 'NEW_YORK_KNICKS',
-                                    'WASHINGTON_WIZARDS', 'ORLANDO_MAGIC', 'PHILADELPHIA_76ERS', 'SACRAMENTO_KINGS',
-                                    'INDIANA_PACERS', 'MILWAUKEE_BUCKS', 'DENVER_NUGGETS', 'ATLANTA_HAWKS',
-                                    'MEMPHIS_GRIZZLIES', 'PORTLAND_TRAIL_BLAZERS', 'LA_LAKERS',
-                                    'SAN_ANTONIO_SPURS'],
-                           'ABBREVIATION': ['TOR', 'BOS', 'LAC', 'DEN', 'MIA', 'GSW', 'PHX', 'CHA', 'DAL', 'CHI',
-                                            'OKC', 'HOU', 'CLE', 'UTA', 'BKN', 'DET', 'MIN', 'NOP', 'NYK', 'WAS',
-                                            'ORL', 'PHI', 'SAC', 'IND', 'MIL', 'DEN', 'ATL', 'MEM', 'POR', 'LAL',
-                                            'SAS']})
-
+                                        'BOSTON_CELTICS', 'LA_CLIPPERS', 'DENVER_NUGGETS', 'MIAMI_HEAT',
+                                        'GOLDEN_STATE_WARRIORS', 'PHOENIX_SUNS', 'CHARLOTTE_HORNETS',
+                                        'DALLAS_MAVERICKS', 'CHICAGO_BULLS', 'OKLAHOMA_CITY', 'HOUSTON_ROCKETS',
+                                        'CLEVELAND_CAVALIERS', 'UTAH_JAZZ', 'BROOKLYN_NETS', 'DETROIT_PISTONS',
+                                        'MINNESOTA_TIMBERWOLVES', 'NEW_ORLEANS_PELICANS', 'NEW_YORK_KNICKS',
+                                        'WASHINGTON_WIZARDS', 'ORLANDO_MAGIC', 'PHILADELPHIA_76ERS', 'SACRAMENTO_KINGS',
+                                        'INDIANA_PACERS', 'MILWAUKEE_BUCKS', 'DENVER_NUGGETS', 'ATLANTA_HAWKS',
+                                        'MEMPHIS_GRIZZLIES', 'PORTLAND_TRAIL_BLAZERS', 'LA_LAKERS',
+                                        'SAN_ANTONIO_SPURS'],
+                               'ABBREVIATION': ['TOR', 'BOS', 'LAC', 'DEN', 'MIA', 'GSW', 'PHX', 'CHA', 'DAL', 'CHI',
+                                                'OKC', 'HOU', 'CLE', 'UTA', 'BKN', 'DET', 'MIN', 'NOP', 'NYK', 'WAS',
+                                                'ORL', 'PHI', 'SAC', 'IND', 'MIL', 'DEN', 'ATL', 'MEM', 'POR', 'LAL',
+                                                'SAS']})
 
 savebets = pd.merge(savebets, simapping, left_on=savebets['Home Team'], right_on=simapping['Team'], how='left')
 
@@ -2153,29 +2158,29 @@ savebets = savebets.drop('key_0', axis=1)
 
 savebets = pd.merge(savebets, schedulesave, left_on=savebets['ID'], right_on=schedulesave['HomeScheduleID'], how='left')
 
-savebets=savebets[['Over-Under Odds', 'Over-Under Scores',
-   'Home Team', 'Away Team', 'Home Odds', 'Away Odds', 'Date',
-   'Difference', 'Team', 'ABBREVIATION', 'ID', 'HomeScheduleID',
-   'TotalScore']]
+savebets = savebets[['Over-Under Odds', 'Over-Under Scores',
+                     'Home Team', 'Away Team', 'Home Odds', 'Away Odds', 'Date',
+                     'Difference', 'Team', 'ABBREVIATION', 'ID', 'HomeScheduleID',
+                     'TotalScore']]
 
-savebets = savebets.to_csv(directory1+'SaveBets.csv')
+savebets = savebets.to_csv('SaveBets.csv')
 
 # Cosmetics
 bets['Home Team'] = bets['Home Team'].str.replace(" ", "_").str.upper()
 bets['Away Team'] = bets['Away Team'].str.replace(" ", "_").str.upper()
 
 bets = pd.merge(bets, simapping, left_on=bets['Home Team'], right_on=simapping['Team'], how='left').drop('key_0',
-                                                                                                     axis=1).drop(
-'Team', axis=1)
+                                                                                                         axis=1).drop(
+    'Team', axis=1)
 bets = pd.merge(bets, simapping, left_on=bets['Away Team'], right_on=simapping['Team'], how='left').drop('key_0',
-                                                                                                     axis=1).drop(
-'Team', axis=1)
+                                                                                                         axis=1).drop(
+    'Team', axis=1)
 bets = bets.drop_duplicates().reset_index()
 bets = bets.rename(columns={'ABBREVIATION_x': 'Home Abbreviation', 'ABBREVIATION_y': 'Away Abbreviation'})
 
 # BetClick DataFrame with the command to the button in question to click and a few conversions
 betclick = pd.DataFrame(betgameclick).rename(
-columns={0: 'Over Click', 1: 'Under Click', 2: 'Home Click', 3: 'Away Click', 4: 'Cut'})
+    columns={0: 'Over Click', 1: 'Under Click', 2: 'Home Click', 3: 'Away Click', 4: 'Cut'})
 bets['Home Odds'] = bets['Home Odds'].astype(float)
 bets['Away Odds'] = bets['Away Odds'].astype(float)
 bets['Over-Under Odds'] = bets['Over-Under Odds'].astype(float)
@@ -2206,7 +2211,7 @@ teamadd = []
 
 # Create dataframe for the odds and a list for the buttons to click
 for j in range(0, len(bets)):
-a = min(bets.iloc[j, :][['Away Odds', 'Home Odds']])
+    a = min(bets.iloc[j, :][['Away Odds', 'Home Odds']])
 favorite.insert(j, a)
 teamadd.insert(j, betclick.loc[j, 'Home Abbreviation'])
 if a == bets.iloc[j, :]['Away Odds']:
@@ -2228,15 +2233,14 @@ click = [favoriteclick, underdogclick, teamadd]
 betamount = 1
 bet = """driver.find_element_by_xpath('//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[1]/div/form/div/div/div/div[1]/input').send_keys(betamount)"""
 
-completetesting=pd.DataFrame()
+completetesting = pd.DataFrame()
 
 for j in range(0, len(bets)):
 
-
 testing = pd.DataFrame()
 
-home=bets['Home Abbreviation'][j]
-opponent=bets['Away Abbreviation'][j]
+home = bets['Home Abbreviation'][j]
+opponent = bets['Away Abbreviation'][j]
 a = datetime.datetime.today()
 date_format = "%Y-%m-%d"
 b = datetime.datetime.strptime(max(nbadata[nbadata['TEAM_ABBREVIATION'] == home]['Gamedate']), date_format)
@@ -2246,13 +2250,13 @@ delta2 = a - c
 testing['HomeDaysRest'] = min(delta.days, 5)
 testing['AwayDaysRest'] = min(delta2.days, 5)
 
-if conference[conference['Team']==home]['Conference'].reset_index()['Conference'][0] == 'E':
+if conference[conference['Team'] == home]['Conference'].reset_index()['Conference'][0] == 'E':
 
     testing['ConferenceBinary'] = 1
 else:
     testing['ConferenceBinary'] = 0
 
-if conference[conference['Team']==home]['Conference'].reset_index()['Conference'][0] == 'E':
+if conference[conference['Team'] == home]['Conference'].reset_index()['Conference'][0] == 'E':
     testing['OpponentConferenceBinary'] = 1
 else:
     testing['OpponentConferenceBinary'] = 0
@@ -2272,36 +2276,57 @@ testing['S2019'] = 0
 testing['S2020'] = 0
 testing['S2021'] = 1
 
-testteamscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == home) & ((teamscoring['Season Year'] == currentyear))].reset_index()
-testing['Average_Team_Score'] = np.mean(testteamscoring['Team_Score'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
-testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == home)&(totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)['TotalScore']
+testteamscoring = teamscoring[
+    (teamscoring['TEAM_ABBREVIATION'] == home) & ((teamscoring['Season Year'] == currentyear))].reset_index()
+testing['Average_Team_Score'] = np.mean(
+    testteamscoring['Team_Score'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
+testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == home) & (
+        totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)[
+    'TotalScore']
 testing['Average_Team_Total_Score'] = np.mean(testscoring.loc[len(testscoring) - 5:len(testscoring)])
-testteamscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == opponent) & ((teamscoring['Season Year'] == currentyear))].reset_index()
-testing['Average_Opp_Team_Score'] = np.mean(testteamscoring['TotalScore'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
-testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == opponent)&(totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)
+testteamscoring = teamscoring[
+    (teamscoring['TEAM_ABBREVIATION'] == opponent) & ((teamscoring['Season Year'] == currentyear))].reset_index()
+testing['Average_Opp_Team_Score'] = np.mean(
+    testteamscoring['TotalScore'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
+testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == opponent) & (
+        totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)
 testing['Average_Opp_Total_Score'] = np.mean(testscoring.loc[len(testscoring) - 5:len(testscoring)])
 
-testing['Team_Last_Game_Score'] = schedule[(schedule['HOME_TEAM_ABBREVIATION'] == team) & (schedule['Season Year'] == currentyear)].filter(['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == team) & (schedule['Season Year'] == currentyear)].filter(['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(['start_time'], ascending=False)['team_score'].iloc[0]
-testing['Opponent_Last_Game_Score'] = schedule[(schedule['HOME_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(['start_time'], ascending=False)['team_score'].iloc[0]
+testing['Team_Last_Game_Score'] = \
+    schedule[(schedule['HOME_TEAM_ABBREVIATION'] == team) & (schedule['Season Year'] == currentyear)].filter(
+        ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
+        columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(
+        schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == team) & (schedule['Season Year'] == currentyear)].filter(
+            ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
+            columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
+        ['start_time'], ascending=False)['team_score'].iloc[0]
+testing['Opponent_Last_Game_Score'] = \
+    schedule[(schedule['HOME_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
+        ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
+        columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(
+        schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
+            ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
+            columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
+        ['start_time'], ascending=False)['team_score'].iloc[0]
 completetesting = completetesting.append(testing)
 
-#loadmodelfromfile
+# loadmodelfromfile
 modelsonly = []
 with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/models.pckl", "rb") as f:
-while True:
-    try:
-        modelsonly.append(pickle.load(f))
-    except EOFError:
-        break
+    while True:
+        try:
+            modelsonly.append(pickle.load(f))
+        except EOFError:
+            break
 
-models2=models
+models2 = models
 
-models = [(modelsonly, item) for modelsonly,item in enumerate(modelsonly,start=210)]
+models = [(modelsonly, item) for modelsonly, item in enumerate(modelsonly, start=210)]
 
 benchmark = [item[0] for item in models]
 modelindex = benchmark.index(float(math.floor(float(
-bets[bets['Home Abbreviation'] == home]['Over-Under Scores'].reset_index().drop('index', axis=1)[
-    'Over-Under Scores'][0]))))  # need to put the abbreviation.
+    bets[bets['Home Abbreviation'] == home]['Over-Under Scores'].reset_index().drop('index', axis=1)[
+        'Over-Under Scores'][0]))))  # need to put the abbreviation.
 prob = models[modelindex][1].predict_proba(completetesting.iloc[:, 0:17])[0][1]
 predicted.insert(j, [home, prob])
 
@@ -2311,12 +2336,13 @@ predicted.sort_values('Prob', inplace=True, ascending=False)
 # Betting Selection Loop:Therefore this will go through the games for the day making up to 15 bets or at the max $60 worth of bets based on
 # combinations of two games at a time.
 
-#sign-in
-#straight to betting
+# sign-in
+# straight to betting
 # Access to Website and then information pull of daily games
 
-#for range in (1,len(prairieaccounts)):
-driver = webdriver.Chrome('/Users/kabariquaye/Desktop/chromedriver')  #need to have the right version of chromedriver installed on computer.
+# for range in (1,len(prairieaccounts)):
+driver = webdriver.Chrome(
+    '/Users/kabariquaye/Desktop/chromedriver')  # need to have the right version of chromedriver installed on computer.
 driver.get("https://www.sportsinteraction.com/basketball/nba-betting-lines/")
 # The gamedate to check if the games are today
 gamedatesi = driver.find_element_by_xpath('//*[@id="page"]/div[2]/div/ul/li[1]/h4').text
@@ -2333,325 +2359,9 @@ driver.find_element_by_xpath('//*[@id="header-container"]/span/div/div/div/span'
 driver.find_element_by_xpath('//*[@id="LoginForm__account-name"]').send_keys(prairieaccounts[i][])
 driver.find_element_by_xpath('//*[@id="LoginForm__password"]').send_keys(prairieaccounts[i][1])
 driver.find_element_by_xpath(
-'//*[@id="portals-container"]/div/div[1]/div/div[2]/div/content/div/div/div/form/button').click()
+    '//*[@id="portals-container"]/div/div[1]/div/div[2]/div/content/div/div/div/form/button').click()
 time.sleep(random.uniform(10, 20))
 
-j = 0
-numgames = len(bets)
-betcount = 1
-maxbets = 24
-bets = 0
-possiblebets = comb(numgames, 2)
-
-while bets <= maxbets:
-if numgames == 1:
-    # if model says bet over bet over
-    if predicted['Prob'][0] >= 0.7:
-        exec (betclick['Over Click'][0])
-        time.sleep(random.uniform(2, 5))
-        # Underdog-Favorite
-        exec (click[1][0])
-        exec (bet)
-        time.sleep(random.uniform(2, 5))
-        try:
-            driver.find_element_by_xpath(
-                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-            time.sleep(random.uniform(2, 5))
-            try:
-                driver.find_element_by_xpath(
-                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
-            except:
-                pass
-        except:
-            pass
-    else:
-        pass
-    if predicted['Prob'][0] >= 0.7:
-        exec (betclick['Over Click'][0])
-        # Bet Favorite
-        exec (click[0][0])
-        exec (bet)
-        time.sleep(random.uniform(2, 5))
-        try:
-            driver.find_element_by_xpath(
-                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-            time.sleep(random.uniform(2, 5))
-            try:
-                driver.find_element_by_xpath(
-                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
-            except:
-                pass
-        except:
-            pass
-
-        else:
-            pass
-else:
-    if (numgames == 2):
-        if predicted['Prob'][0] >= 0.6:
-            # Underdog-Favorite
-            exec (click[1][j])
-            for i in range(0, numgames):
-                if i != j:
-                    time.sleep(random.uniform(2, 5))
-                    exec (click[0][i])
-                else:
-                    pass
-        time.sleep(random.uniform(2, 5))
-        # if model says bet over bet over
-        if predicted['Prob'][0] >= 0.6:
-            exec (betclick['Over Click'][0])
-            time.sleep(random.uniform(2, 5))
-            # if model says bet over bet over
-            exec (bet)
-        time.sleep(random.uniform(2, 5))
-        try:
-            driver.find_element_by_xpath(
-                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-            time.sleep(random.uniform(2, 5))
-            try:
-                driver.find_element_by_xpath(
-                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
-            except:
-                pass
-        except:
-            pass
-        # Underdogs
-        for k in range(0, numgames):
-            time.sleep(random.uniform(2, 5))
-            exec (click[1][k])
-        exec (betclick['Under Click'][0])
-        exec (betclick['Under Click'][1])
-        exec (bet)
-        time.sleep(random.uniform(2, 5))
-        try:
-            driver.find_element_by_xpath(
-                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-            time.sleep(random.uniform(2, 5))
-            try:
-                driver.find_element_by_xpath(
-                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
-            except:
-                pass
-        except:
-            pass
-
-            # Favorites
-        for i in range(0, numgames):
-            time.sleep(random.uniform(2, 5))
-            exec (click[0][i])
-        exec (betclick['Under Click'][0])
-        exec (betclick['Under Click'][1])
-        exec (bet)
-        time.sleep(random.uniform(2, 5))
-        try:
-            driver.find_element_by_xpath(
-                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-            time.sleep(random.uniform(2, 5))
-            try:
-                driver.find_element_by_xpath(
-                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
-            except:
-                pass
-        except:
-            pass
-
-        # Favorite - Underdog
-        exec (click[0][j])
-        for i in range(0, numgames):
-            if i != j:
-                time.sleep(random.uniform(2, 5))
-                exec (click[1][i])
-            else:
-                pass
-        exec (betclick['Under Click'][0])
-        exec (betclick['Under Click'][1])
-        exec (bet)
-        time.sleep(random.uniform(2, 5))
-        try:
-            driver.find_element_by_xpath(
-                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-            time.sleep(random.uniform(2, 5))
-            try:
-                driver.find_element_by_xpath(
-                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
-            except:
-                pass
-        except:
-            pass
-        j = j + 1
-
-    else:
-        for a in (predicted.index):
-            betcount = 0
-            try:
-                if len(gamesbet) < 2:
-                    gamesbet = gamesbet
-                else:
-                    gamesbet = []
-            except:
-                gamesbet = []
-            gamesindex = []
-            while betcount <= 1:
-                team = predicted.loc[a]['Team']
-                teamposition = click[2].index(team)
-                if predicted['Prob'][a] > 0.50:
-                    exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
-                    time.sleep(random.uniform(2, 5))
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(2, 5))
-                if predicted['Prob'][a] <= 0.50:
-                    exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(2, 5))  # Underdog-Favorite
-                if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
-                    time.sleep(random.uniform(2, 5))
-                    exec (click[1][teamposition])
-                    time.sleep(random.uniform(2, 5))
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(2, 5))
-                    gamesindex = list(range(0, numgames))
-                    gamesindex = [item for item in gamesindex if item not in gamesbet]
-                    gameschoose = list(bets[bets['Home Abbreviation'] != team].index)
-                    for i in gameschoose:
-                        if (team != bets.loc[random.choice(list(bets.index))]['Home Abbreviation']) & (
-                                i not in gamesbet) & (i != a):
-                            time.sleep(random.uniform(2, 5))
-                            driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                            time.sleep(random.uniform(2, 5))
-                            exec (click[0][i])
-                            time.sleep(random.uniform(2, 5))
-                            driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                            gamesbet.insert(0, i)
-                            break
-                        else:
-                            pass
-                    # if model says bet over bet over
-                    exec (bet)
-                    time.sleep(random.uniform(2, 5))
-                    for i in range(0, 5):
-                        try:
-                            driver.find_element_by_xpath(
-                                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-                            time.sleep(random.uniform(1, 3))
-                            newbalance = driver.find_element_by_xpath(
-                                '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
-                        except:
-                            pass
-                    balance = newbalance
-                    time.sleep(random.uniform(5, 10))
-                # Underdogs
-                if predicted['Prob'][a] > 0.50:
-                    exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
-                if predicted['Prob'][a] <= 0.50:
-                    exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
-                if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
-                    time.sleep(random.uniform(2, 5))
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    exec (click[1][teamposition])
-                    time.sleep(random.uniform(5, 7))
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(5, 7))
-                    exec (click[1][gamesbet[0]])
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(2, 5))
-                    exec (bet)
-                    time.sleep(random.uniform(2, 5))
-                    time.sleep(random.uniform(2, 5))
-                    #                                bets[bets['Home Abbreviation']==team]['']
-                    for i in range(0, 5):
-                        try:
-                            driver.find_element_by_xpath(
-                                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-                            time.sleep(random.uniform(1, 3))
-                            newbalance = driver.find_element_by_xpath(
-                                '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
-                        except:
-                            pass
-                    balance = newbalance
-                    time.sleep(random.uniform(5, 10))
-                    # Favorites
-                if predicted['Prob'][a] > 0.50:
-                    exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
-                if predicted['Prob'][a] <= 0.50:
-                    exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
-                time.sleep(random.uniform(2, 5))
-                if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(2, 5))
-                    exec (click[0][gamesbet[0]])
-                    time.sleep(random.uniform(5, 6))
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(5, 6))
-                    exec (click[0][teamposition])
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(2, 5))
-                    exec (bet)
-                    time.sleep(random.uniform(1, 3))
-                    for i in range(0, 5):
-                        try:
-                            driver.find_element_by_xpath(
-                                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-                            time.sleep(random.uniform(1, 3))
-                            newbalance = driver.find_element_by_xpath(
-                                '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
-                        except:
-                            pass
-                    balance = newbalance
-                    time.sleep(random.uniform(5, 10))
-
-                # Favorite - Underdog
-                if predicted['Prob'][a] > 0.50:
-                    exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
-                if predicted['Prob'][a] <= 0.50:
-                    exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
-                if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(2, 5))
-                    exec (click[1][gamesbet[0]])
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    time.sleep(random.uniform(2, 5))
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    exec (click[0][teamposition])
-                    time.sleep(random.uniform(2, 5))
-                    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                    exec (bet)
-                    time.sleep(random.uniform(2, 5))
-                    time.sleep(random.uniform(2, 5))
-                    for i in range(0, 5):
-                        try:
-                            driver.find_element_by_xpath(
-                                '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
-                            time.sleep(random.uniform(1, 3))
-                            newbalance = driver.find_element_by_xpath(
-                                '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
-                        except:
-                            pass
-                    balance = newbalance
-                    time.sleep(random.uniform(5, 10))
-                betcount = betcount + 1
-                bets = bets + 1
-driver.close()
-
-for range in (1,len(prairieaccounts)):
-driver = webdriver.Chrome('/Users/kabariquaye/Desktop/chromedriver')  #need to have the right version of chromedriver installed on computer.
-driver.get("https://www.sportsinteraction.com/basketball/nba-betting-lines/")
-# The gamedate to check if the games are today
-gamedatesi = driver.find_element_by_xpath('//*[@id="page"]/div[2]/div/ul/li[1]/h4').text
-gamedatesi = gamedatesi + ' ' + str(datetime.datetime.today().year)
-gamedatesi = datetime.datetime.strptime(gamedatesi, '%a %b %d %Y')
-today = datetime.datetime.today().date()
-today = datetime.datetime(today.year, today.month, today.day)
-betgamesodds = []
-betgameclick = []
-
-# Actual Site Log-in
-time.sleep(random.uniform(10, 20))
-driver.find_element_by_xpath('//*[@id="header-container"]/span/div/div/div/span').click()
-driver.find_element_by_xpath('//*[@id="LoginForm__account-name"]').send_keys(prairieaccounts[i][0])
-driver.find_element_by_xpath('//*[@id="LoginForm__password"]').send_keys(prairieaccounts[i][1])
-driver.find_element_by_xpath('//*[@id="portals-container"]/div/div[1]/div/div[2]/div/content/div/div/div/form/button').click()
-time.sleep(random.uniform(10, 20))
 j = 0
 numgames = len(bets)
 betcount = 1
@@ -2663,11 +2373,11 @@ while bets <= maxbets:
     if numgames == 1:
         # if model says bet over bet over
         if predicted['Prob'][0] >= 0.7:
-            exec (betclick['Over Click'][0])
+            exec(betclick['Over Click'][0])
             time.sleep(random.uniform(2, 5))
             # Underdog-Favorite
-            exec (click[1][0])
-            exec (bet)
+            exec(click[1][0])
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
                 driver.find_element_by_xpath(
@@ -2683,10 +2393,10 @@ while bets <= maxbets:
         else:
             pass
         if predicted['Prob'][0] >= 0.7:
-            exec (betclick['Over Click'][0])
+            exec(betclick['Over Click'][0])
             # Bet Favorite
-            exec (click[0][0])
-            exec (bet)
+            exec(click[0][0])
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
                 driver.find_element_by_xpath(
@@ -2706,20 +2416,20 @@ while bets <= maxbets:
         if (numgames == 2):
             if predicted['Prob'][0] >= 0.6:
                 # Underdog-Favorite
-                exec (click[1][j])
+                exec(click[1][j])
                 for i in range(0, numgames):
                     if i != j:
                         time.sleep(random.uniform(2, 5))
-                        exec (click[0][i])
+                        exec(click[0][i])
                     else:
                         pass
             time.sleep(random.uniform(2, 5))
             # if model says bet over bet over
             if predicted['Prob'][0] >= 0.6:
-                exec (betclick['Over Click'][0])
+                exec(betclick['Over Click'][0])
                 time.sleep(random.uniform(2, 5))
                 # if model says bet over bet over
-                exec (bet)
+                exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
                 driver.find_element_by_xpath(
@@ -2735,10 +2445,10 @@ while bets <= maxbets:
             # Underdogs
             for k in range(0, numgames):
                 time.sleep(random.uniform(2, 5))
-                exec (click[1][k])
-            exec (betclick['Under Click'][0])
-            exec (betclick['Under Click'][1])
-            exec (bet)
+                exec(click[1][k])
+            exec(betclick['Under Click'][0])
+            exec(betclick['Under Click'][1])
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
                 driver.find_element_by_xpath(
@@ -2755,10 +2465,10 @@ while bets <= maxbets:
                 # Favorites
             for i in range(0, numgames):
                 time.sleep(random.uniform(2, 5))
-                exec (click[0][i])
-            exec (betclick['Under Click'][0])
-            exec (betclick['Under Click'][1])
-            exec (bet)
+                exec(click[0][i])
+            exec(betclick['Under Click'][0])
+            exec(betclick['Under Click'][1])
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
                 driver.find_element_by_xpath(
@@ -2773,16 +2483,16 @@ while bets <= maxbets:
                 pass
 
             # Favorite - Underdog
-            exec (click[0][j])
+            exec(click[0][j])
             for i in range(0, numgames):
                 if i != j:
                     time.sleep(random.uniform(2, 5))
-                    exec (click[1][i])
+                    exec(click[1][i])
                 else:
                     pass
-            exec (betclick['Under Click'][0])
-            exec (betclick['Under Click'][1])
-            exec (bet)
+            exec(betclick['Under Click'][0])
+            exec(betclick['Under Click'][1])
+            exec(bet)
             time.sleep(random.uniform(2, 5))
             try:
                 driver.find_element_by_xpath(
@@ -2812,30 +2522,30 @@ while bets <= maxbets:
                     team = predicted.loc[a]['Team']
                     teamposition = click[2].index(team)
                     if predicted['Prob'][a] > 0.50:
-                        exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
                     if predicted['Prob'][a] <= 0.50:
-                        exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))  # Underdog-Favorite
                     if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
                         time.sleep(random.uniform(2, 5))
-                        exec (click[1][teamposition])
+                        exec(click[1][teamposition])
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
                         gamesindex = list(range(0, numgames))
                         gamesindex = [item for item in gamesindex if item not in gamesbet]
-                        gamechoose=list(bets[bets['Home Abbreviation'] != team].index)
-
+                        gameschoose = list(bets[bets['Home Abbreviation'] != team].index)
                         for i in gameschoose:
-                            if (team != bets.loc[random.choice(list(bets.index))]['Home Abbreviation']) & (i not in gamesbet) & (i != a):
+                            if (team != bets.loc[random.choice(list(bets.index))]['Home Abbreviation']) & (
+                                    i not in gamesbet) & (i != a):
                                 time.sleep(random.uniform(2, 5))
                                 driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                                 time.sleep(random.uniform(2, 5))
-                                exec (click[0][i])
+                                exec(click[0][i])
                                 time.sleep(random.uniform(2, 5))
                                 driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                                 gamesbet.insert(0, i)
@@ -2843,7 +2553,7 @@ while bets <= maxbets:
                             else:
                                 pass
                         # if model says bet over bet over
-                        exec (bet)
+                        exec(bet)
                         time.sleep(random.uniform(2, 5))
                         for i in range(0, 5):
                             try:
@@ -2858,20 +2568,20 @@ while bets <= maxbets:
                         time.sleep(random.uniform(5, 10))
                     # Underdogs
                     if predicted['Prob'][a] > 0.50:
-                        exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if predicted['Prob'][a] <= 0.50:
-                        exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                        exec (click[1][teamposition])
+                        exec(click[1][teamposition])
                         time.sleep(random.uniform(5, 7))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(5, 7))
-                        exec (click[1][gamesbet[0]])
+                        exec(click[1][gamesbet[0]])
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
-                        exec (bet)
+                        exec(bet)
                         time.sleep(random.uniform(2, 5))
                         time.sleep(random.uniform(2, 5))
                         #                                bets[bets['Home Abbreviation']==team]['']
@@ -2888,21 +2598,21 @@ while bets <= maxbets:
                         time.sleep(random.uniform(5, 10))
                         # Favorites
                     if predicted['Prob'][a] > 0.50:
-                        exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if predicted['Prob'][a] <= 0.50:
-                        exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     time.sleep(random.uniform(2, 5))
                     if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
-                        exec (click[0][gamesbet[0]])
+                        exec(click[0][gamesbet[0]])
                         time.sleep(random.uniform(5, 6))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(5, 6))
-                        exec (click[0][teamposition])
+                        exec(click[0][teamposition])
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
-                        exec (bet)
+                        exec(bet)
                         time.sleep(random.uniform(1, 3))
                         for i in range(0, 5):
                             try:
@@ -2918,20 +2628,339 @@ while bets <= maxbets:
 
                     # Favorite - Underdog
                     if predicted['Prob'][a] > 0.50:
-                        exec (betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if predicted['Prob'][a] <= 0.50:
-                        exec (betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
                     if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
-                        exec (click[1][gamesbet[0]])
+                        exec(click[1][gamesbet[0]])
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                        exec (click[0][teamposition])
+                        exec(click[0][teamposition])
                         time.sleep(random.uniform(2, 5))
                         driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-                        exec (bet)
+                        exec(bet)
+                        time.sleep(random.uniform(2, 5))
+                        time.sleep(random.uniform(2, 5))
+                        for i in range(0, 5):
+                            try:
+                                driver.find_element_by_xpath(
+                                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                                time.sleep(random.uniform(1, 3))
+                                newbalance = driver.find_element_by_xpath(
+                                    '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
+                            except:
+                                pass
+                        balance = newbalance
+                        time.sleep(random.uniform(5, 10))
+                    betcount = betcount + 1
+                    bets = bets + 1
+driver.close()
+
+for range in (1, len(prairieaccounts)):
+    driver = webdriver.Chrome(
+        '/Users/kabariquaye/Desktop/chromedriver')  # need to have the right version of chromedriver installed on computer.
+driver.get("https://www.sportsinteraction.com/basketball/nba-betting-lines/")
+# The gamedate to check if the games are today
+gamedatesi = driver.find_element_by_xpath('//*[@id="page"]/div[2]/div/ul/li[1]/h4').text
+gamedatesi = gamedatesi + ' ' + str(datetime.datetime.today().year)
+gamedatesi = datetime.datetime.strptime(gamedatesi, '%a %b %d %Y')
+today = datetime.datetime.today().date()
+today = datetime.datetime(today.year, today.month, today.day)
+betgamesodds = []
+betgameclick = []
+
+# Actual Site Log-in
+time.sleep(random.uniform(10, 20))
+driver.find_element_by_xpath('//*[@id="header-container"]/span/div/div/div/span').click()
+driver.find_element_by_xpath('//*[@id="LoginForm__account-name"]').send_keys(prairieaccounts[i][0])
+driver.find_element_by_xpath('//*[@id="LoginForm__password"]').send_keys(prairieaccounts[i][1])
+driver.find_element_by_xpath(
+    '//*[@id="portals-container"]/div/div[1]/div/div[2]/div/content/div/div/div/form/button').click()
+time.sleep(random.uniform(10, 20))
+j = 0
+numgames = len(bets)
+betcount = 1
+maxbets = 24
+bets = 0
+possiblebets = comb(numgames, 2)
+
+while bets <= maxbets:
+    if numgames == 1:
+        # if model says bet over bet over
+        if predicted['Prob'][0] >= 0.7:
+            exec(betclick['Over Click'][0])
+            time.sleep(random.uniform(2, 5))
+            # Underdog-Favorite
+            exec(click[1][0])
+            exec(bet)
+            time.sleep(random.uniform(2, 5))
+            try:
+                driver.find_element_by_xpath(
+                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                time.sleep(random.uniform(2, 5))
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
+                except:
+                    pass
+            except:
+                pass
+        else:
+            pass
+        if predicted['Prob'][0] >= 0.7:
+            exec(betclick['Over Click'][0])
+            # Bet Favorite
+            exec(click[0][0])
+            exec(bet)
+            time.sleep(random.uniform(2, 5))
+            try:
+                driver.find_element_by_xpath(
+                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                time.sleep(random.uniform(2, 5))
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
+                except:
+                    pass
+            except:
+                pass
+
+            else:
+                pass
+    else:
+        if (numgames == 2):
+            if predicted['Prob'][0] >= 0.6:
+                # Underdog-Favorite
+                exec(click[1][j])
+                for i in range(0, numgames):
+                    if i != j:
+                        time.sleep(random.uniform(2, 5))
+                        exec(click[0][i])
+                    else:
+                        pass
+            time.sleep(random.uniform(2, 5))
+            # if model says bet over bet over
+            if predicted['Prob'][0] >= 0.6:
+                exec(betclick['Over Click'][0])
+                time.sleep(random.uniform(2, 5))
+                # if model says bet over bet over
+                exec(bet)
+            time.sleep(random.uniform(2, 5))
+            try:
+                driver.find_element_by_xpath(
+                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                time.sleep(random.uniform(2, 5))
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
+                except:
+                    pass
+            except:
+                pass
+            # Underdogs
+            for k in range(0, numgames):
+                time.sleep(random.uniform(2, 5))
+                exec(click[1][k])
+            exec(betclick['Under Click'][0])
+            exec(betclick['Under Click'][1])
+            exec(bet)
+            time.sleep(random.uniform(2, 5))
+            try:
+                driver.find_element_by_xpath(
+                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                time.sleep(random.uniform(2, 5))
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
+                except:
+                    pass
+            except:
+                pass
+
+                # Favorites
+            for i in range(0, numgames):
+                time.sleep(random.uniform(2, 5))
+                exec(click[0][i])
+            exec(betclick['Under Click'][0])
+            exec(betclick['Under Click'][1])
+            exec(bet)
+            time.sleep(random.uniform(2, 5))
+            try:
+                driver.find_element_by_xpath(
+                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                time.sleep(random.uniform(2, 5))
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
+                except:
+                    pass
+            except:
+                pass
+
+            # Favorite - Underdog
+            exec(click[0][j])
+            for i in range(0, numgames):
+                if i != j:
+                    time.sleep(random.uniform(2, 5))
+                    exec(click[1][i])
+                else:
+                    pass
+            exec(betclick['Under Click'][0])
+            exec(betclick['Under Click'][1])
+            exec(bet)
+            time.sleep(random.uniform(2, 5))
+            try:
+                driver.find_element_by_xpath(
+                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                time.sleep(random.uniform(2, 5))
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button/span').click()  # placebet
+                except:
+                    pass
+            except:
+                pass
+            j = j + 1
+
+        else:
+            for a in (predicted.index):
+                betcount = 0
+                try:
+                    if len(gamesbet) < 2:
+                        gamesbet = gamesbet
+                    else:
+                        gamesbet = []
+                except:
+                    gamesbet = []
+                gamesindex = []
+                while betcount <= 1:
+                    team = predicted.loc[a]['Team']
+                    teamposition = click[2].index(team)
+                    if predicted['Prob'][a] > 0.50:
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        time.sleep(random.uniform(2, 5))
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(2, 5))
+                    if predicted['Prob'][a] <= 0.50:
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(2, 5))  # Underdog-Favorite
+                    if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
+                        time.sleep(random.uniform(2, 5))
+                        exec(click[1][teamposition])
+                        time.sleep(random.uniform(2, 5))
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(2, 5))
+                        gamesindex = list(range(0, numgames))
+                        gamesindex = [item for item in gamesindex if item not in gamesbet]
+                        gamechoose = list(bets[bets['Home Abbreviation'] != team].index)
+
+                        for i in gameschoose:
+                            if (team != bets.loc[random.choice(list(bets.index))]['Home Abbreviation']) & (
+                                    i not in gamesbet) & (i != a):
+                                time.sleep(random.uniform(2, 5))
+                                driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                                time.sleep(random.uniform(2, 5))
+                                exec(click[0][i])
+                                time.sleep(random.uniform(2, 5))
+                                driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                                gamesbet.insert(0, i)
+                                break
+                            else:
+                                pass
+                        # if model says bet over bet over
+                        exec(bet)
+                        time.sleep(random.uniform(2, 5))
+                        for i in range(0, 5):
+                            try:
+                                driver.find_element_by_xpath(
+                                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                                time.sleep(random.uniform(1, 3))
+                                newbalance = driver.find_element_by_xpath(
+                                    '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
+                            except:
+                                pass
+                        balance = newbalance
+                        time.sleep(random.uniform(5, 10))
+                    # Underdogs
+                    if predicted['Prob'][a] > 0.50:
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                    if predicted['Prob'][a] <= 0.50:
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                    if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
+                        time.sleep(random.uniform(2, 5))
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        exec(click[1][teamposition])
+                        time.sleep(random.uniform(5, 7))
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(5, 7))
+                        exec(click[1][gamesbet[0]])
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(2, 5))
+                        exec(bet)
+                        time.sleep(random.uniform(2, 5))
+                        time.sleep(random.uniform(2, 5))
+                        #                                bets[bets['Home Abbreviation']==team]['']
+                        for i in range(0, 5):
+                            try:
+                                driver.find_element_by_xpath(
+                                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                                time.sleep(random.uniform(1, 3))
+                                newbalance = driver.find_element_by_xpath(
+                                    '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
+                            except:
+                                pass
+                        balance = newbalance
+                        time.sleep(random.uniform(5, 10))
+                        # Favorites
+                    if predicted['Prob'][a] > 0.50:
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                    if predicted['Prob'][a] <= 0.50:
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                    time.sleep(random.uniform(2, 5))
+                    if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(2, 5))
+                        exec(click[0][gamesbet[0]])
+                        time.sleep(random.uniform(5, 6))
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(5, 6))
+                        exec(click[0][teamposition])
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(2, 5))
+                        exec(bet)
+                        time.sleep(random.uniform(1, 3))
+                        for i in range(0, 5):
+                            try:
+                                driver.find_element_by_xpath(
+                                    '//*[@id="content-right"]/div/div[2]/div[2]/div[2]/div[2]/div/button').click()  # accept
+                                time.sleep(random.uniform(1, 3))
+                                newbalance = driver.find_element_by_xpath(
+                                    '//*[@id="header-container"]/span/div/div/div/div/div[1]/div/span/h4').text
+                            except:
+                                pass
+                        balance = newbalance
+                        time.sleep(random.uniform(5, 10))
+
+                    # Favorite - Underdog
+                    if predicted['Prob'][a] > 0.50:
+                        exec(betclick['Over Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                    if predicted['Prob'][a] <= 0.50:
+                        exec(betclick['Under Click'][betclick[betclick['Home Abbreviation'] == team].index[0]])
+                    if (predicted['Prob'][a] <= 0.50) | (predicted['Prob'][a] > 0.50):
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(2, 5))
+                        exec(click[1][gamesbet[0]])
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        time.sleep(random.uniform(2, 5))
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        exec(click[0][teamposition])
+                        time.sleep(random.uniform(2, 5))
+                        driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+                        exec(bet)
                         time.sleep(random.uniform(2, 5))
                         time.sleep(random.uniform(2, 5))
                         for i in range(0, 5):
@@ -2950,28 +2979,28 @@ while bets <= maxbets:
     driver.close()
     time.sleep(random.uniform(10, 20))
 
-
-schedule2=schedule
+schedule2 = schedule
 
 schedule2 = pd.merge(schedule2, conference, left_on='HOME_TEAM_ABBREVIATION', right_on='Team', how='left').drop('Team',
-                                                                                                   axis=1).rename(columns={'Conference': 'Conference Home'})
+                                                                                                                axis=1).rename(
+    columns={'Conference': 'Conference Home'})
 schedule2 = pd.merge(schedule2, conference, left_on='AWAY_TEAM_ABBREVIATION', right_on='Team', how='left').drop('Team',
-                                                                                                   axis=1).rename(columns={'Conference': 'Conference Away'})
-tempanalysis = schedule2.groupby(['Season Year', 'Month', 'Conference Home']).agg({'TotalScore':'mean'})
+                                                                                                                axis=1).rename(
+    columns={'Conference': 'Conference Away'})
+tempanalysis = schedule2.groupby(['Season Year', 'Month', 'Conference Home']).agg({'TotalScore': 'mean'})
 
-tempanalysisH=tempanalysis.reset_index(level=['Season Year', 'Month','Conference Home'])
+tempanalysisH = tempanalysis.reset_index(level=['Season Year', 'Month', 'Conference Home'])
 
-tempanalysis[tempanalysisH['Season Year']=='2021']
+tempanalysis[tempanalysisH['Season Year'] == '2021']
 
-tempanalysis = schedule2.groupby(['Season Year', 'Month', 'Conference Away']).agg({'TotalScore':'mean'})
+tempanalysis = schedule2.groupby(['Season Year', 'Month', 'Conference Away']).agg({'TotalScore': 'mean'})
 
-tempanalysis[tempanalysis['Season Year']=='2021']
+tempanalysis[tempanalysis['Season Year'] == '2021']
 
 conference = pd.DataFrame(data={'Team': ['BOS', 'GSW', 'HOU', 'CLE', 'ORL', 'UTA', 'BKN', 'DET', 'MIN',
-                                     'NOP', 'PHI', 'WAS', 'MEM', 'SAC', 'CHA', 'POR', 'SAS', 'IND',
-                                     'ATL', 'DAL', 'PHX', 'MIA', 'MIL', 'DEN', 'OKC', 'LAL', 'TOR',
-                                     'NYK', 'LAC', 'CHI'],
-                            'Conference': ['E', 'W', 'W', 'E', 'E', 'W', 'E', 'E', 'W', 'W', 'E', 'E', 'W',
-                                           'W', 'E', 'W', 'W', 'E', 'E', 'W', 'W', 'E', 'E', 'W', 'W', 'W',
-                                           'E', 'E', 'W', 'E']})
-
+                                         'NOP', 'PHI', 'WAS', 'MEM', 'SAC', 'CHA', 'POR', 'SAS', 'IND',
+                                         'ATL', 'DAL', 'PHX', 'MIA', 'MIL', 'DEN', 'OKC', 'LAL', 'TOR',
+                                         'NYK', 'LAC', 'CHI'],
+                                'Conference': ['E', 'W', 'W', 'E', 'E', 'W', 'E', 'E', 'W', 'W', 'E', 'E', 'W',
+                                               'W', 'E', 'W', 'W', 'E', 'E', 'W', 'W', 'E', 'E', 'W', 'W', 'W',
+                                               'E', 'E', 'W', 'E']})

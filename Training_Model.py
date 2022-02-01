@@ -1,4 +1,4 @@
-#train function
+# train function
 
 import requests
 import random
@@ -6,6 +6,7 @@ import json
 import math
 import warnings
 import pickle
+import xgboost
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
@@ -29,21 +30,21 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import GridSearchCV
 from threading import Timer
-
 import basketball_reference_web_scraper
 from basketball_reference_web_scraper import client
 from basketball_reference_web_scraper.data import OutputType
 import schedule
+from sklearn import model_selection
+from sklearn.metrics import accuracy_score
 
 scaler = StandardScaler()
 
-
-#Save all Files here - this is where files will be updated
-#Save your directory files here and then run code.
-directory1='/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/'
+# Save all Files here - this is where files will be updated
+# Save your directory files here and then run code.
+directory1 = '/home/kyle/Downloads/nba_betting/NBA_Betting'
 
 # Starts importing model data
-nbadata = pd.read_csv(directory1+'nbadataytd.csv', low_memory=False)
+nbadata = pd.read_csv(directory1 + 'nbadataytd.csv', low_memory=False)
 
 nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
                    'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
@@ -101,19 +102,20 @@ Schedule2011 = pd.DataFrame(client.season_schedule(season_end_year=2011))
 Schedule2011['Season Year'] = '2011'
 Schedule2010 = pd.DataFrame(client.season_schedule(season_end_year=2010))
 Schedule2010['Season Year'] = '2010'
-schedulelist = [Schedule2022,Schedule2021, Schedule2020, Schedule2019, Schedule2018, Schedule2017, Schedule2016, Schedule2015,
+schedulelist = [Schedule2022, Schedule2021, Schedule2020, Schedule2019, Schedule2018, Schedule2017, Schedule2016,
+                Schedule2015,
                 Schedule2014, Schedule2013, Schedule2012, Schedule2011, Schedule2010]
 Schedule2020.filter(['start_time', 'home_team_score'])
 
 schedule = pd.DataFrame()
 
 # Append each schedule and do appropriate conversions
-schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(Schedule2018).append(
+schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(
+    Schedule2018).append(
     Schedule2017).append(Schedule2017).append(Schedule2016).append(Schedule2015).append(Schedule2014).append(
     Schedule2013).append(Schedule2012).append(Schedule2011).append(Schedule2010)
 
-
-#Adjust Date so it is correct, adjust
+# Adjust Date so it is correct, adjust
 schedule['start_time'] = schedule['start_time'] - timedelta(hours=12)
 schedule['start_time'] = schedule['start_time'].apply(lambda x: x.strftime('%Y-%m-%d'))
 schedule['away_team'] = schedule['away_team'].astype('S')
@@ -123,18 +125,19 @@ schedule['home_team'] = schedule['home_team'].astype('S')
 hometeams = schedule['home_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
 schedule['home_team'] = [x[1] for x in hometeams]
 
-#This is the Full Team Names to Abbreviation mapping
-teammapping = pd.read_csv(directory1+'dataframe.csv')
-schedule = pd.merge(schedule, teammapping, left_on=schedule['home_team'], right_on=teammapping['Team_Names'],how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'HOME_TEAM_ABBREVIATION'})
+# This is the Full Team Names to Abbreviation mapping
+teammapping = pd.read_csv(directory1 + 'dataframe.csv')
+schedule = pd.merge(schedule, teammapping, left_on=schedule['home_team'], right_on=teammapping['Team_Names'],
+                    how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'HOME_TEAM_ABBREVIATION'})
 schedule = schedule.drop('key_0', axis=1)
-schedule = pd.merge(schedule, teammapping, left_on=schedule['away_team'], right_on=teammapping['Team_Names'],how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'AWAY_TEAM_ABBREVIATION'})
+schedule = pd.merge(schedule, teammapping, left_on=schedule['away_team'], right_on=teammapping['Team_Names'],
+                    how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'AWAY_TEAM_ABBREVIATION'})
 
-#Unique NBA Teams
+# Unique NBA Teams
 nbateams = pd.DataFrame(schedule['HOME_TEAM_ABBREVIATION'].unique())
 
-#Seasons
-seasonyears = ['2022','2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010']
-
+# Seasons
+seasonyears = ['2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010']
 
 # We want to add the new data to our original file, therefore we filter on the new season and compare the dates in our file to the games that have been played.
 playoffslist = []
@@ -150,12 +153,10 @@ for s in seasonyears:
     dataytd.insert(seasonyears.index(s), dataytdtemp)
     dates = dates.append(dataytd[seasonyears.index(s)].tolist())
 
-
-#We don't want to re-add old data so we filter on dates that are larger than the maximum date in our data file
+# We don't want to re-add old data so we filter on dates that are larger than the maximum date in our data file
 captureddates = pd.DataFrame(nbadata['Gamedate'].unique())
 datelist = [x for x in dates[0].tolist() if x not in captureddates[0].tolist()]
 datelist = [x for x in datelist if x > max(captureddates[0])]
-
 
 # The following for loop reads the new data from nba.com into a list
 for e in range(0, len(datelist)):
@@ -225,7 +226,7 @@ if not (nbadataworking.empty):
 if (nbadataworking.empty):
     nbadatatworking = pd.DataFrame()
 
-#Same process but this is for Playoffs Data
+# Same process but this is for Playoffs Data
 for e in range(0, len(datelist)):
     try:
         year1 = datelist[e][:4]
@@ -295,15 +296,15 @@ if (playoffsworking.empty):
 playoffsdata = playoffsdata.append(playoffsworking)
 playoffsdata = playoffsdata.reset_index()
 
-#Append data into final dataframe
+# Append data into final dataframe
 nbadata = nbadata.append(nbadataworking)
 nbadataworking = nbadataworking.append(playoffsdata)
 
-#SAVE DATA
-nbadata.to_csv(directory1+'nbadataytd.csv')
+# SAVE DATA
+nbadata.to_csv(directory1 + 'nbadataytd.csv')
 
-#READ DATA
-nbadata = pd.read_csv(directory1+'nbadataytd.csv', low_memory=False)
+# READ DATA
+nbadata = pd.read_csv(directory1 + 'nbadataytd.csv', low_memory=False)
 nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
                    'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
                    'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV',
@@ -316,37 +317,37 @@ nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', '
                    'PTS_RANK', 'PLUS_MINUS_RANK', 'NBA_FANTASY_PTS_RANK', 'DD2_RANK',
                    'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs']]
 
-#This secondary files adds in extra statistics for each game
+# This secondary files adds in extra statistics for each game
 execfile('/Users/kabariquaye/PycharmProjects/pythonProject1/AdditionalData.py')
 
-#The above file generates the extra stats and then we read it in.
-nbadataaddon = pd.read_csv(directory1+'nbadataytdaddon.csv',low_memory=False)
+# The above file generates the extra stats and then we read it in.
+nbadataaddon = pd.read_csv(directory1 + 'nbadataytdaddon.csv', low_memory=False)
 
-#Create IDs to merge nbadata with the additional statistics
+# Create IDs to merge nbadata with the additional statistics
 nbadata['TEAM_ID'] = nbadata['TEAM_ID'].astype(str)
 nbadataaddon['ID'] = nbadataaddon['Gamedate'].astype(str) + nbadataaddon['TEAM_ID'].astype(str).str[:-2]
 
-#Additional statistics to be merged
+# Additional statistics to be merged
 nbadataaddon = nbadataaddon[
     ['ID', 'AST_PCT', 'AST_TO', 'AST_RATIO', 'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT', 'TS_PCT',
      'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE']]
 
-#Another ID
+# Another ID
 nbadata['AddonID'] = nbadata['Gamedate'] + nbadata['TEAM_ID'].astype(str).str[:-2]
-#Merge
+# Merge
 nbadata = pd.merge(nbadata, nbadataaddon, left_on=nbadata['AddonID'], right_on=nbadataaddon['ID'], how='left')
 
-#Drop any error rows and duplicates
+# Drop any error rows and duplicates
 nbadata = nbadata.drop_duplicates()
 nbadata = nbadata[nbadata['PLAYER_ID'] != 'PLAYER_NAME']
 nbadata = nbadata[nbadata['PLAYER_ID'] != 'False']
 nbadata = nbadata.dropna()
 
-#Reset index and drop IDs
+# Reset index and drop IDs
 nbadata.reset_index().drop(['index', 'key_0'], axis=1)
 nbadata = nbadata.drop(['AddonID', 'ID'], axis=1)
 
-#Keep Rows we want
+# Keep Rows we want
 nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
                    'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
                    'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV',
@@ -361,12 +362,12 @@ nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', '
                    'AST_PCT', 'AST_TO', 'AST_RATIO', 'OREB_PCT', 'DREB_PCT', 'REB_PCT',
                    'TM_TOV_PCT', 'EFG_PCT', 'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE']]
 
-#I think these commands are redundant
+# I think these commands are redundant
 nbadata = nbadata.infer_objects()
 nbadata['Gamedate'] = nbadata['Gamedate'].astype(str)
 nbadata['TEAM_ABBREVIATION'] = nbadata['TEAM_ABBREVIATION'].astype(str)
 
-#We need to re merge all our seasonal information so we redo the season process
+# We need to re merge all our seasonal information so we redo the season process
 nbaschedule = pd.DataFrame()
 standingslist = []
 standing = pd.DataFrame()
@@ -391,12 +392,12 @@ Schedule2014['Season Year'] = '2014'
 
 schedule = pd.DataFrame()
 
+schedulelist = [Schedule2022, Schedule2021, Schedule2020, Schedule2019, Schedule2018, Schedule2017, Schedule2016,
+                Schedule2015, Schedule2014]
 
-schedulelist = [Schedule2022,Schedule2021, Schedule2020, Schedule2019, Schedule2018, Schedule2017, Schedule2016, Schedule2015,Schedule2014]
-
-
-schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(Schedule2018).append(Schedule2017).append(Schedule2017).append(Schedule2016).append(Schedule2015).append(Schedule2014)
-
+schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(
+    Schedule2018).append(Schedule2017).append(Schedule2017).append(Schedule2016).append(Schedule2015).append(
+    Schedule2014)
 
 schedule['start_time'] = schedule['start_time'] - timedelta(hours=12)
 schedule['start_time'] = schedule['start_time'].apply(lambda x: x.strftime('%Y-%m-%d'))
@@ -406,7 +407,7 @@ schedule['away_team'] = [x[1] for x in awayteams]
 schedule['home_team'] = schedule['home_team'].astype('S')
 hometeams = schedule['home_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
 schedule['home_team'] = [x[1] for x in hometeams]
-teammapping = pd.read_csv(directory1+'dataframe.csv')
+teammapping = pd.read_csv(directory1 + 'dataframe.csv')
 schedule = pd.merge(schedule, teammapping, left_on=schedule['home_team'], right_on=teammapping['Team_Names'],
                     how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'HOME_TEAM_ABBREVIATION'})
 schedule = schedule.drop('key_0', axis=1)
@@ -414,7 +415,7 @@ schedule = pd.merge(schedule, teammapping, left_on=schedule['away_team'], right_
                     how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'AWAY_TEAM_ABBREVIATION'})
 nbateams = pd.DataFrame(schedule['HOME_TEAM_ABBREVIATION'].unique())
 
-seasonyears = ['2022','2021', '2020', '2019', '2018', '2017', '2016', '2015']
+seasonyears = ['2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015']
 
 seasonmerge = schedule.filter(['Season Year', 'start_time'])
 seasonmerge = seasonmerge.drop_duplicates()
@@ -637,18 +638,16 @@ nbadata = pd.merge(nbadata, opponentconference, left_on=nbadata['Opponent'],
 nbadata['ConferenceBinary'] = np.where(nbadata['Conference'] == 'W', 0, 1)
 nbadata['OpponentConferenceBinary'] = np.where(nbadata['Opponent Conference'] == 'W', 0, 1)
 
-#In between seasons this will give extra large numbers and in-between February break
+# In between seasons this will give extra large numbers and in-between February break
 nbadata['HomeDaysRest'] = nbadata['HomeDaysRest'].clip(upper=5)
 nbadata['away_team_score'][np.isnan(nbadata['away_team_score'])] = 0
 nbadata['home_team_score'][np.isnan(nbadata['home_team_score'])] = 0
 nbadata = nbadata.drop('key_0', axis=1)
 
+# We set the number of games for averaging to use in our model, 5 is the ideal number
+averaging = 5
 
-#We set the number of games for averaging to use in our model, 5 is the ideal number
-averaging=5
-
-
-#We first filter variable and take sums for games played @ home
+# We first filter variable and take sums for games played @ home
 teamavgH = []
 teamavgHdf = pd.DataFrame()
 for s in list(nbadata['Season Year'].unique()):
@@ -669,7 +668,7 @@ for s in list(nbadata['Season Year'].unique()):
 
 teamavgHdf = teamavgHdf.reset_index()
 
-#Take Average for a given season and a given team for games at home
+# Take Average for a given season and a given team for games at home
 avgHomeStats = pd.DataFrame()
 for s in list(teamavgHdf['Season'].unique()):
     for i in list(teamavgHdf['TEAM_ABBREVIATION'].unique()):
@@ -679,8 +678,8 @@ for s in list(teamavgHdf['Season'].unique()):
         except:
             tempscoring = teamavgHdf[(teamavgHdf['TEAM_ABBREVIATION'] == i) & ((teamavgHdf['Season'] == s))].drop(
                 'level_0', axis=1).reset_index()
-        for j in range(averaging+1, len(tempscoring)):
-            tempmean = tempscoring.loc[j - (averaging+1):j - 1]
+        for j in range(averaging + 1, len(tempscoring)):
+            tempmean = tempscoring.loc[j - (averaging + 1):j - 1]
             gamedate = tempscoring['Gamedate'][j]
             tempmean = tempmean.groupby("Team", as_index=True)[
                 'AvgHPF', 'AvgHFGM', 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB', 'AvgHAST', 'AvgHREB', 'AvgHSTL', 'AvgHAST_PCT', 'AvgHAST_TO', 'AvgHAST_RATIO', 'AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT',
@@ -691,8 +690,7 @@ for s in list(teamavgHdf['Season'].unique()):
             avgHomeStats = avgHomeStats.append(tempmean)
 avgHomeStats = avgHomeStats.reset_index()
 
-
-#Do the same thing for away games
+# Do the same thing for away games
 teamavgAdf = pd.DataFrame()
 for s in list(nbadata['Season Year'].unique()):
     tempseason = nbadata[(nbadata['Season Year'] == s) & (nbadata['H/A'] == 'A') & (nbadata['MIN'] > 0)]
@@ -711,7 +709,6 @@ for s in list(nbadata['Season Year'].unique()):
         teamavgAdf = teamavgAdf.append(a)
 teamavgAdf = teamavgAdf.reset_index()
 
-
 avgAwayStats = pd.DataFrame()
 for s in list(teamavgAdf['Season'].unique()):
     for i in list(teamavgAdf['TEAM_ABBREVIATION'].unique()):
@@ -721,8 +718,8 @@ for s in list(teamavgAdf['Season'].unique()):
         except:
             tempscoring = teamavgAdf[(teamavgAdf['TEAM_ABBREVIATION'] == i) & ((teamavgAdf['Season'] == s))].drop(
                 'level_0', axis=1).reset_index()
-        for j in range(averaging+1, len(tempscoring)):
-            tempmean = tempscoring.loc[j - (averaging+1):j - 1]
+        for j in range(averaging + 1, len(tempscoring)):
+            tempmean = tempscoring.loc[j - (averaging + 1):j - 1]
             gamedate = tempscoring['Gamedate'][j]
             tempmean = tempmean.groupby("Team", as_index=True)[
                 'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgAAST_PCT', 'AvgAAST_TO', 'AvgAAST_RATIO', 'AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT',
@@ -733,16 +730,14 @@ for s in list(teamavgAdf['Season'].unique()):
             avgAwayStats = avgAwayStats.append(tempmean)
 avgAwayStats = avgAwayStats.reset_index()
 
-
-#This is going to be used for merging to our final training data file.
+# This is going to be used for merging to our final training data file.
 avgAwayStats['avgID'] = avgAwayStats['Team'] + avgAwayStats['Gamedate']
 avgHomeStats['avgID'] = avgHomeStats['Team'] + avgHomeStats['Gamedate']
 
 avgAwayStats = avgAwayStats.drop(['Season', 'Gamedate'], axis=1)
 avgHomeStats = avgHomeStats.drop(['Season', 'Gamedate'], axis=1)
 
-
-#We sort the values for each team by date for away and home games
+# We sort the values for each team by date for away and home games
 teamscoring = schedule.sort_values(['AWAY_TEAM_ABBREVIATION', 'start_time']).filter(
     ['away_team_score', 'AWAY_TEAM_ABBREVIATION', 'TotalScore', 'start_time', 'Season Year']).rename(
     columns={'away_team_score': 'home_team_score', 'AWAY_TEAM_ABBREVIATION': 'HOME_TEAM_ABBREVIATION'}).append(
@@ -759,7 +754,8 @@ for s in list(teamscoring['Season Year'].unique()):
             tempscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == i) & (teamscoring['Season Year'] == s)].drop(
                 'level_0', axis=1).reset_index()
         except:
-            tempscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == i) & (teamscoring['Season Year'] == s)].reset_index()
+            tempscoring = teamscoring[
+                (teamscoring['TEAM_ABBREVIATION'] == i) & (teamscoring['Season Year'] == s)].reset_index()
         try:
             tempscoring['Last_Game_Score'] = tempscoring['Team_Score'].shift(1)
             tempscoring['Last_Game_Score'].iloc[0] = np.mean(tempscoring[tempscoring['Season Year'] == s]['Team_Score'])
@@ -779,14 +775,16 @@ for s in list(teamscoring['Season Year'].unique()):
                 (teamscoring['TEAM_ABBREVIATION'] == i) & ((teamscoring['Season Year'] == s))].reset_index()
         except:
             tempscoring = teamscoring[
-                (teamscoring['TEAM_ABBREVIATION'] == i) & ((teamscoring['Season Year'] == s))].drop('level_0',axis=1).reset_index()
+                (teamscoring['TEAM_ABBREVIATION'] == i) & ((teamscoring['Season Year'] == s))].drop('level_0',
+                                                                                                    axis=1).reset_index()
         for j in range(6, len(tempscoring)):
-            tempmean = tempscoring.loc[j - (averaging+1):j - 1]
+            tempmean = tempscoring.loc[j - (averaging + 1):j - 1]
             gamedate = tempscoring['start_time'][j]
             tempmean = np.mean(tempmean['Team_Score'])
             avgrollteamscore.insert(0, [i, s, gamedate, tempmean])
 
-avgrollteamscore = pd.DataFrame(avgrollteamscore).rename(columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
+avgrollteamscore = pd.DataFrame(avgrollteamscore).rename(
+    columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
 
 avgrollteamscore['Month'] = avgrollteamscore['Date'].str[5:7].apply(int)
 
@@ -806,13 +804,14 @@ for s in list(totalscoring['Season Year'].unique()):
     for i in list(totalscoring['TEAM_ABBREVIATION'].unique()):
         tempscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == i) & (
                 totalscoring['Season Year'] == s)].reset_index().drop_duplicates().drop('index', axis=1)
-        for j in range(averaging+1, len(tempscoring)):
-            tempmean = tempscoring.loc[j - (averaging+1):j - 1]
+        for j in range(averaging + 1, len(tempscoring)):
+            tempmean = tempscoring.loc[j - (averaging + 1):j - 1]
             gamedate = tempscoring['start_time'][j]
             tempmean = np.mean(tempmean['TotalScore'])
             avgrolltotalscore.insert(0, [i, s, gamedate, tempmean])
 
-avgrolltotalscore = pd.DataFrame(avgrolltotalscore).rename(columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
+avgrolltotalscore = pd.DataFrame(avgrolltotalscore).rename(
+    columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
 
 avgrolltotalscore['Month'] = avgrolltotalscore['Date'].str[5:7].apply(int)  # use for gamedate
 
@@ -820,10 +819,11 @@ avgrolltotalscore['avgID'] = avgrolltotalscore['TEAM_ABBREVIATION'] + avgrolltot
 
 avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score', 'Month']).drop_duplicates()
 
-avgrolltotalscore = pd.DataFrame(avgrolltotalscore).rename(columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
+avgrolltotalscore = pd.DataFrame(avgrolltotalscore).rename(
+    columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg Score'}).drop_duplicates()
 
-#execfile('/Users/kabariquaye/PycharmProjects/pythonProject1/Quarterly_Data.py')
-quarterdata = pd.read_csv(directory1+'quarterdata.csv')
+# execfile('/Users/kabariquaye/PycharmProjects/pythonProject1/Quarterly_Data.py')
+quarterdata = pd.read_csv(directory1 + 'quarterdata.csv')
 quarterdata['TEAM_NAME'] = quarterdata['TEAM_NAME'].str.replace(" ", "_").str.upper()
 
 quarterdata = pd.merge(quarterdata, teammapping, left_on=quarterdata['TEAM_NAME'], right_on=teammapping['Team_Names'],
@@ -859,13 +859,13 @@ probdata = pd.merge(qwfilterhome, opponent, left_on='ID', right_on='home_teamID'
 probdata = pd.merge(probdata, qwfilteraway, left_on='away_teamID', right_on='ID', how='left')
 probdata = probdata.dropna()
 probdata = probdata.rename(columns={'ID_x': 'HomeID', 'PTS_x': 'HomeQ2', 'PTS_y': 'AwayQ2'})
-#probdata = probdata.rename(columns={'ID_x': 'HomeID', 'PTS_x': 'HomeQ3', 'PTS_y': 'AwayQ3'})
+# probdata = probdata.rename(columns={'ID_x': 'HomeID', 'PTS_x': 'HomeQ3', 'PTS_y': 'AwayQ3'})
 probdata = probdata.filter(['HomeID', 'HomeQ2', 'AwayQ2', 'TotalQ2'])
-#probdata = probdata.filter(['HomeID', 'HomeQ3', 'AwayQ3', 'TotalQ3'])
-probdata['TotalQ2'] = probdata['HomeQ2']+probdata['AwayQ2']
-#probdata['TotalQ3'] = probdata['HomeQ3']+probdata['AwayQ3']
+# probdata = probdata.filter(['HomeID', 'HomeQ3', 'AwayQ3', 'TotalQ3'])
+probdata['TotalQ2'] = probdata['HomeQ2'] + probdata['AwayQ2']
+# probdata['TotalQ3'] = probdata['HomeQ3']+probdata['AwayQ3']
 schedule = schedule.drop('key_0', axis=1)
-schedule=pd.merge(schedule,probdata,left_on=schedule['home_teamID'],right_on=probdata['HomeID'],how='left')
+schedule = pd.merge(schedule, probdata, left_on=schedule['home_teamID'], right_on=probdata['HomeID'], how='left')
 
 # q2scoring = schedule.sort_values(['AWAY_TEAM_ABBREVIATION', 'start_time']).filter(
 #     ['AwayQ2', 'AWAY_TEAM_ABBREVIATION', 'start_time', 'Season Year']).rename(
@@ -876,41 +876,40 @@ schedule=pd.merge(schedule,probdata,left_on=schedule['home_teamID'],right_on=pro
 #     columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION'}).drop_duplicates()
 
 # q2scoring=q2scoring[['HomeScheduleID','HomeQ2','AwayQ2']]
-q2scoring=schedule[['home_teamID','TotalQ2']]
+q2scoring = schedule[['home_teamID', 'TotalQ2']]
 
-
-#Create new data file as interim step to training data
+# Create new data file as interim step to training data
 nbadatamodel = nbadata
 
-#This will be the training data
+# This will be the training data
 tfdata = pd.DataFrame()
 
-nbadatamodel = nbadatamodel.rename(columns={'TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'Gamedate_x': 'Gamedate', 'Season Year_x': 'Season Year'})
+nbadatamodel = nbadatamodel.rename(
+    columns={'TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'Gamedate_x': 'Gamedate', 'Season Year_x': 'Season Year'})
 # nbadatamodel=nbadatamodel.drop('key_0',axis=1)
 
 for team in nbadatamodel['TEAM_ABBREVIATION'].unique():
     traindatatemp = pd.DataFrame()
     traindata = nbadatamodel[(nbadatamodel['TEAM_ABBREVIATION'] == team) & (nbadatamodel['H/A'] == 'H')]
     for game in traindata['Gamedate'].unique():
-            teamdata = traindata[(traindata['Gamedate'] == game)]
-            totscore = teamdata['TotalScore'].iloc[0]
-            Opponent = traindata[(traindata['Gamedate'] == game)]['Opponent'].unique()[0]
-            Opponentdf = nbadatamodel[
-                (nbadatamodel['TEAM_ABBREVIATION'] == Opponent) & (nbadatamodel['Gamedate'] == game)]
-            players = pd.DataFrame()
-            players[['HomeDaysRest', 'Team Rank', 'ConferenceBinary', 'Opponent Rank', 'OpponentConferenceBinary',
-                     'Season Year','Playoffs']] = teamdata.reset_index()[
-                ['HomeDaysRest', 'Team Rank', 'ConferenceBinary', 'Opponent Rank', 'OpponentConferenceBinary',
-                 'Season Year','Playoffs']]  # Add ,'AST','REB','TOV','STL', 'BLK','PF'
-            players['AwayDaysRest'] = Opponentdf.reset_index()['HomeDaysRest'][0]
-            players['Gamedate'] = game
-            players['Team'] = team
-            players['Opponent'] = Opponent
-            players['TotalScore'] = totscore
-            tfdata = tfdata.append(players)
+        teamdata = traindata[(traindata['Gamedate'] == game)]
+        totscore = teamdata['TotalScore'].iloc[0]
+        Opponent = traindata[(traindata['Gamedate'] == game)]['Opponent'].unique()[0]
+        Opponentdf = nbadatamodel[
+            (nbadatamodel['TEAM_ABBREVIATION'] == Opponent) & (nbadatamodel['Gamedate'] == game)]
+        players = pd.DataFrame()
+        players[['HomeDaysRest', 'Team Rank', 'ConferenceBinary', 'Opponent Rank', 'OpponentConferenceBinary',
+                 'Season Year', 'Playoffs']] = teamdata.reset_index()[
+            ['HomeDaysRest', 'Team Rank', 'ConferenceBinary', 'Opponent Rank', 'OpponentConferenceBinary',
+             'Season Year', 'Playoffs']]  # Add ,'AST','REB','TOV','STL', 'BLK','PF'
+        players['AwayDaysRest'] = Opponentdf.reset_index()['HomeDaysRest'][0]
+        players['Gamedate'] = game
+        players['Team'] = team
+        players['Opponent'] = Opponent
+        players['TotalScore'] = totscore
+        tfdata = tfdata.append(players)
 
-
-tfdata=tfdata.drop_duplicates()
+tfdata = tfdata.drop_duplicates()
 tfdata = tfdata.reset_index()
 tfdatakeep = tfdata
 
@@ -922,17 +921,20 @@ tfdata['avgIDmain'] = tfdata['Team'] + tfdata['Gamedate']
 
 tfdata['avgID2main'] = tfdata['Opponent'] + tfdata['Gamedate']
 
-tfdata['Q2ID'] = tfdata['Team']+tfdata['Gamedate']
+tfdata['Q2ID'] = tfdata['Team'] + tfdata['Gamedate']
 
 teamscoring = teamscoring.reset_index()
 
 teamscoring = teamscoring.filter(['avgID', 'Last_Game_Score']).drop_duplicates()
 
-tfdata2 = pd.merge(tfdata, teamscoring, left_on=tfdata['avgIDmain'], right_on=teamscoring['avgID'], how='left').rename(columns={'avgID_x': 'avgID', 'Last_Game_Score': 'Team_Last_Game_Score'})
+tfdata2 = pd.merge(tfdata, teamscoring, left_on=tfdata['avgIDmain'], right_on=teamscoring['avgID'], how='left').rename(
+    columns={'avgID_x': 'avgID', 'Last_Game_Score': 'Team_Last_Game_Score'})
 
 tfdata2 = tfdata2.drop('key_0', axis=1)
 
-tfdata3 = pd.merge(tfdata2, teamscoring, left_on=tfdata2['avgID2main'], right_on=teamscoring['avgID'],how='left').rename(columns={'avgID_x': 'avgID', 'Last_Game_Score': 'Opponent_Last_Game_Score'}).drop('avgID_y', axis=1)
+tfdata3 = pd.merge(tfdata2, teamscoring, left_on=tfdata2['avgID2main'], right_on=teamscoring['avgID'],
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Last_Game_Score': 'Opponent_Last_Game_Score'}).drop(
+    'avgID_y', axis=1)
 
 tfdata3 = tfdata3.drop_duplicates()
 
@@ -940,46 +942,55 @@ avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score']).drop_duplic
 
 tfdata3 = tfdata3.drop('key_0', axis=1)
 
-tfdata4 = pd.merge(tfdata3, avgrollteamscore, left_on=tfdata3['avgIDmain'], right_on=avgrollteamscore['avgID'],how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Team_Score'}).dropna()
+tfdata4 = pd.merge(tfdata3, avgrollteamscore, left_on=tfdata3['avgIDmain'], right_on=avgrollteamscore['avgID'],
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Team_Score'}).dropna()
 
 tfdata4 = tfdata4.drop('key_0', axis=1)
 
-tfdata5 = pd.merge(tfdata4, avgrollteamscore, left_on=tfdata4['avgID2main'], right_on=avgrollteamscore['avgID'],how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Team_Score'}).dropna()
+tfdata5 = pd.merge(tfdata4, avgrollteamscore, left_on=tfdata4['avgID2main'], right_on=avgrollteamscore['avgID'],
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Team_Score'}).dropna()
 
 tfdata5 = tfdata5.drop('key_0', axis=1)
 
 avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score']).drop_duplicates()
 
-tfdata6 = pd.merge(tfdata5, avgrolltotalscore, left_on=tfdata5['avgIDmain'], right_on=avgrolltotalscore['avgID'],how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Team_Total_Score'}).dropna()
+tfdata6 = pd.merge(tfdata5, avgrolltotalscore, left_on=tfdata5['avgIDmain'], right_on=avgrolltotalscore['avgID'],
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Team_Total_Score'}).dropna()
 
 tfdata6 = tfdata6.drop('key_0', axis=1)
 
-tfdata7 = pd.merge(tfdata6, avgrolltotalscore, left_on=tfdata6['avgID2main'], right_on=avgrolltotalscore['avgID'],how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
+tfdata7 = pd.merge(tfdata6, avgrolltotalscore, left_on=tfdata6['avgID2main'], right_on=avgrolltotalscore['avgID'],
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
 
 tfdata7 = tfdata7.drop('key_0', axis=1)
 
-tfdata8 = pd.merge(tfdata7, avgHomeStats, left_on=tfdata7['avgIDmain'], right_on=avgHomeStats['avgID'],how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
+tfdata8 = pd.merge(tfdata7, avgHomeStats, left_on=tfdata7['avgIDmain'], right_on=avgHomeStats['avgID'],
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
 
 tfdata8 = tfdata8.drop('key_0', axis=1)
 
-tfdata9 = pd.merge(tfdata8, avgAwayStats, left_on=tfdata8['avgID2main'], right_on=avgAwayStats['avgID'],how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
+tfdata9 = pd.merge(tfdata8, avgAwayStats, left_on=tfdata8['avgID2main'], right_on=avgAwayStats['avgID'],
+                   how='left').rename(columns={'avgID_x': 'avgID', 'Avg Score': 'Average_Opp_Total_Score'}).dropna()
 
 tfdata9 = tfdata9.drop('key_0', axis=1)
 
-tfdata10 = pd.merge(tfdata9, q2scoring, left_on=tfdata9['Q2ID'], right_on=q2scoring['home_teamID'],how='left').dropna().drop_duplicates()
+tfdata10 = pd.merge(tfdata9, q2scoring, left_on=tfdata9['Q2ID'], right_on=q2scoring['home_teamID'],
+                    how='left').dropna().drop_duplicates()
 
+tfdata10 = pd.read_csv("trainingdata.csv")
+training_dataq3 = pd.read_csv("trainingdataq3.csv")
+training_dataq2 = pd.read_csv("trainingdataq2.csv")
 
-traindata = tfdata10
-testdata=tfdata10
-#traindata = traindata[(traindata['Gamedate'] <= '2021-02-01')]
-#testdata = traindata[traindata['Gamedate'] > '2021-02-01']  #Comment out after checking model output
+traindata = training_dataq3
+testdata = training_dataq3
+# traindata = traindata[(traindata['Gamedate'] <= '2021-02-01')]
+# testdata = traindata[traindata['Gamedate'] > '2021-02-01']  #Comment out after checking model output
 
-#Use this after checking results of testdata, train on all data available
-traindata = traindata[(traindata['Gamedate'] <= '2021-11-01')]
-testdata = testdata[testdata['Gamedate'] > '2021-11-01']  #Comment out after checking model output
+# Use this after checking results of testdata, train on all data available
+# traindata = traindata[(traindata['Gamedate'] <= '2021-11-01')]
+# testdata = testdata[testdata['Gamedate'] > '2021-11-01']  # Comment out after checking model output
 TrainScore = traindata['TotalScore']
 TestScore = testdata['TotalScore']
-
 
 traindata = traindata.drop('TotalScore', axis=1)
 testdata = testdata.drop('TotalScore', axis=1)
@@ -1005,15 +1016,18 @@ testdata['S2022'] = (np.where(testdata['Season Year'] == '2022', 1, 0))
 testdata = testdata.drop('Season Year', axis=1)
 
 tfdata = traindata[[
-    'HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2016', 'S2017','S2018'
-     'S2019', 'S2020', 'S2021','S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
-     'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
-     'Playoffs','TotalQ2']]  # Season Year can remove due to taking average of scores.
+    'HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2016', 'S2017', 'S2018',
+    'S2019', 'S2020', 'S2021', 'S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score',
+    'Team_Last_Game_Score',
+    'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
+    'Playoffs', 'TotalQ3']]  # Season Year can remove due to taking average of scores.
 
-testdata=testdata[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2016', 'S2017', 'S2018',
-'S2019', 'S2020', 'S2021', 'S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
-'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
-'Playoffs', 'TotalQ2']]
+testdata = testdata[
+    ['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2016', 'S2017', 'S2018',
+     'S2019', 'S2020', 'S2021', 'S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score',
+     'Team_Last_Game_Score',
+     'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
+     'Playoffs', 'TotalQ3']]
 
 #
 # tfdata = traindata[[
@@ -1036,37 +1050,84 @@ testdata=testdata[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'Opponent
 #
 
 tfdata = tfdata.reset_index()
-tfdata = tfdata.drop('index',axis=1)
+tfdata = tfdata.drop('index', axis=1)
 
+kylemodels = []
+with open("models.pckl", "rb") as f:
+    while True:
+        try:
+            kylemodels.append(pickle.load(f))
+        except EOFError:
+            break
 models = []
-scores = []
+scoresq3 = []
 
-cutpoints = list(range(210, 236))
+cutpoints = list(range(200, 230))
 cutpoints = [math.floor(float(x)) for x in cutpoints]
+for i, cut in enumerate(cutpoints):
+    Target = np.where(TrainScore > float(cut), 1, 0)
+    TestTarget = np.where(TestScore > float(cut), 1, 0)  # Use for training and checking scores.
+    X_train = tfdata
+    X_test = testdata
+    y_train = Target
+    learning_rate = kylemodels[i].learning_rate
+    max_depth = kylemodels[i].max_depth
+    subsample = kylemodels[i].subsample
+    n_estimators = kylemodels[i].n_estimators
+    param_test = {'max_depth': [max_depth], 'subsample': [subsample], 'n_estimators': [n_estimators],
+                  'learning_rate': [learning_rate]}
+    gsearch = GridSearchCV(
+        estimator=GradientBoostingClassifier(max_features='sqrt', random_state=10, validation_fraction=0.3),
+        param_grid=param_test, scoring='accuracy', n_jobs=4, cv=5)
+    fitmodel = gsearch.fit(X_train,
+                           y_train)  # Use for training and checking scores, use on complete data when done.
+    score = fitmodel.score(X_test, TestTarget)
+    scoresq3.insert(cutpoints.index(cut), [cut, score])
+    models.insert(cutpoints.index(cut), [cut, gsearch.best_estimator_])
 
-for cut in cutpoints:
-    try:
-        Target = np.where(TrainScore > float(cut), 1, 0)
-        TestTarget = np.where(TestScore > float(cut), 1, 0) #Use for training and checking scores.
-        X_train = tfdata
-        X_test=testdata
-        y_train = Target
-        estimators = 1000
-        param_test = {'max_depth': (1,2,3,4,5,6,7,8,9,10,15,20,25), 'subsample': (0.5, 0.6, 0.75, 0.8,0.9)}
-        gsearch = GridSearchCV(estimator=GradientBoostingClassifier(learning_rate=0.01, n_estimators=estimators, max_features='sqrt',subsample=0.8, random_state=10, validation_fraction=0.3),param_grid=param_test, scoring='accuracy', n_jobs=4, cv=5)
-        fitmodel = gsearch.fit(X_train, y_train) #Use for training and checking scores, use on complete data when done.
-        score = fitmodel.score(X_test, TestTarget)
-        scores.insert(cutpoints.index(cut), [cut, score])
-        models.insert(cutpoints.index(cut), [cut, gsearch.best_estimator_])
-    except:
-        pass
-
-#savemodeltofile
-cutsonly=[item[0] for item in models]
-modelsonly=[item[1] for item in models]
-with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/models.pckl", "wb") as f:
+# savemodeltofile
+cutsonly = [item[0] for item in models]
+modelsonly = [item[1] for item in models]
+with open("models.pckl", "wb") as f:
     for model in modelsonly:
-         pickle.dump(model, f)
+        pickle.dump(model, f)
+
+kylemodels = []
+with open("models.pckl", "rb") as f:
+    while True:
+        try:
+            kylemodels.append(pickle.load(f))
+        except EOFError:
+            break
+
+models = [(kylemodels, item) for kylemodels, item in enumerate(kylemodels, start=200)]
+benchmark = [item[0] for item in models]
+# make predictions for test data
+model_1 = kylemodels[1]
+X_test = testdata
+y_pred = model_1.predict(X_test)
+y_test = np.where(TestScore > float(201), 1, 0)
+predictions = [round(value) for value in y_pred]
+# evaluate predictions
+accuracy = accuracy_score(y_test, predictions)
+print("Accuracy: %.2f%%" % (accuracy * 100.0))
+
+kylemodels[0].learning_rate
+kylemodels[0].max_depth
+kylemodels[0].subsample
+kylemodels[0].n_estimators
+
+scoresq2_all = []
+for i, cut in enumerate(cutpoints):
+    Target = np.where(TrainScore > float(cut), 1, 0)
+    TestTarget = np.where(TestScore > float(cut), 1, 0)  # Use for training and checking scores.
+    X_test = testdata
+    model_in = kylemodels[i]
+    y_pred = model_in.predict(X_test)
+    y_test = np.where(TestScore > float(cut), 1, 0)
+    predictions = [round(value) for value in y_pred]
+    accuracy = accuracy_score(y_test, predictions)
+    scoresq2_all.insert(cutpoints.index(cut), [cut, accuracy])
 
 # selection = SelectFromModel(gbm, threshold=0.03, prefit=True)
 # selected_dataset = selection.transform(X_test)

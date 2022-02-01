@@ -1,6 +1,5 @@
 # Import Libraries
 import requests
-"Haha"
 import random
 import json
 import math
@@ -40,24 +39,23 @@ scaler = StandardScaler()
 
 # Starts importing model data
 
-directory1='/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/'
+directory1 = '/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/'
 
-nbadataaddon = pd.read_csv(directory1+'nbadataytdaddon.csv', low_memory=False)
+nbadataaddon = pd.read_csv(directory1 + 'nbadataytdaddon.csv', low_memory=False)
 
 nbadataaddon = nbadataaddon[['TEAM_ID', 'TEAM_NAME', 'GP', 'W', 'L', 'W_PCT',
-       'MIN', 'E_OFF_RATING', 'OFF_RATING', 'E_DEF_RATING', 'DEF_RATING',
-       'E_NET_RATING', 'NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
-       'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
-       'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE',
-       'GP_RANK', 'W_RANK', 'L_RANK', 'W_PCT_RANK', 'MIN_RANK',
-       'OFF_RATING_RANK', 'DEF_RATING_RANK', 'NET_RATING_RANK',
-       'AST_PCT_RANK', 'AST_TO_RANK', 'AST_RATIO_RANK', 'OREB_PCT_RANK',
-       'DREB_PCT_RANK', 'REB_PCT_RANK', 'TM_TOV_PCT_RANK', 'EFG_PCT_RANK',
-       'TS_PCT_RANK', 'PACE_RANK', 'PIE_RANK', 'CFID', 'CFPARAMS',
-       'Gamedate', 'Playoffs']]
+                             'MIN', 'E_OFF_RATING', 'OFF_RATING', 'E_DEF_RATING', 'DEF_RATING',
+                             'E_NET_RATING', 'NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
+                             'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
+                             'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE',
+                             'GP_RANK', 'W_RANK', 'L_RANK', 'W_PCT_RANK', 'MIN_RANK',
+                             'OFF_RATING_RANK', 'DEF_RATING_RANK', 'NET_RATING_RANK',
+                             'AST_PCT_RANK', 'AST_TO_RANK', 'AST_RATIO_RANK', 'OREB_PCT_RANK',
+                             'DREB_PCT_RANK', 'REB_PCT_RANK', 'TM_TOV_PCT_RANK', 'EFG_PCT_RANK',
+                             'TS_PCT_RANK', 'PACE_RANK', 'PIE_RANK', 'CFID', 'CFPARAMS',
+                             'Gamedate', 'Playoffs']]
 
 nbadataaddon['Gamedate'] = nbadataaddon['Gamedate'].astype(str)
-
 
 # We want to set ranks for the teams bsaed on wins and get the end result for each game.
 # This is uses the sports reference api to acheive this.
@@ -100,13 +98,15 @@ Schedule2011 = pd.DataFrame(client.season_schedule(season_end_year=2011))
 Schedule2011['Season Year'] = '2011'
 Schedule2010 = pd.DataFrame(client.season_schedule(season_end_year=2010))
 Schedule2010['Season Year'] = '2010'
-schedulelist = [Schedule2022,Schedule2021, Schedule2020, Schedule2019, Schedule2018, Schedule2017, Schedule2016, Schedule2015,
+schedulelist = [Schedule2022, Schedule2021, Schedule2020, Schedule2019, Schedule2018, Schedule2017, Schedule2016,
+                Schedule2015,
                 Schedule2014, Schedule2013, Schedule2012, Schedule2011, Schedule2010]
 Schedule2020.filter(['start_time', 'home_team_score'])
 
 schedule = pd.DataFrame()
 # Append each schedule and do appropriate conversions
-schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(Schedule2018).append(
+schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(
+    Schedule2018).append(
     Schedule2017).append(Schedule2017).append(Schedule2016).append(Schedule2015).append(Schedule2014).append(
     Schedule2013).append(Schedule2012).append(Schedule2011).append(Schedule2010)
 schedule['start_time'] = schedule['start_time'] - timedelta(hours=12)
@@ -125,7 +125,7 @@ schedule = schedule.drop('key_0', axis=1)
 schedule = pd.merge(schedule, teammapping, left_on=schedule['away_team'], right_on=teammapping['Team_Names'],
                     how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'AWAY_TEAM_ABBREVIATION'})
 nbateams = pd.DataFrame(schedule['HOME_TEAM_ABBREVIATION'].unique())
-seasonyears = ['2022','2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010']
+seasonyears = ['2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010']
 # We want to add the new data to our original file, therefore we filter on the new season and compare the dates in our file to the games that have been played.
 playoffslist = []
 nbadataaddonlist = []
@@ -143,7 +143,7 @@ for s in seasonyears:
 
 captureddates = pd.DataFrame(nbadataaddon['Gamedate'].unique())
 datelist = [x for x in dates[0].tolist() if x > max(captureddates[0].tolist())]
-#datelist = [x for x in dates[0].tolist() if x not in max(captureddates[0].tolist())]
+# datelist = [x for x in dates[0].tolist() if x not in max(captureddates[0].tolist())]
 # leftover games are generally the playoff games.
 # datelist = [x for x in datelist if x > max(captureddates[0])]
 # The following for loop reads the new data from nba.com into a list
@@ -173,7 +173,8 @@ for e in range(0, len(datelist)):
         d = '%2F'
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36',
-            'x-nba-stats-origin': 'stats','x-nba-stats-token': 'true','Connection': 'keep-alive','Host': 'stats.nba.com','Origin': 'https://www.nba.com','Referer': 'https://www.nba.com/'}
+            'x-nba-stats-origin': 'stats', 'x-nba-stats-token': 'true', 'Connection': 'keep-alive',
+            'Host': 'stats.nba.com', 'Origin': 'https://www.nba.com', 'Referer': 'https://www.nba.com/'}
         url = a + month1 + d + day1 + d + year1 + c + month1 + d + day1 + d + year1 + b
         r = requests.get(url, headers=headers)
         numrecords = len(r.json()['resultSets'][0]['rowSet'])
@@ -213,7 +214,8 @@ for e in range(0, len(datelist)):
         d = '%2F'
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36',
-            'x-nba-stats-origin': 'stats','x-nba-stats-token': 'true','Connection': 'keep-alive','Host': 'stats.nba.com','Origin': 'https://www.nba.com','Referer': 'https://www.nba.com/'}
+            'x-nba-stats-origin': 'stats', 'x-nba-stats-token': 'true', 'Connection': 'keep-alive',
+            'Host': 'stats.nba.com', 'Origin': 'https://www.nba.com', 'Referer': 'https://www.nba.com/'}
         url = a + month1 + d + day1 + d + year1 + c + month1 + d + day1 + d + year1 + b
         r = requests.get(url, headers=headers)
         numrecords = len(r.json()['resultSets'][0]['rowSet'])
@@ -243,16 +245,16 @@ if playoffsaddonworking.empty:
     playoffsaddonworking = pd.DataFrame()
 else:
     playoffsaddonworking = playoffsaddonworking[['TEAM_ID', 'TEAM_NAME', 'GP', 'W', 'L', 'W_PCT',
-       'MIN', 'E_OFF_RATING', 'OFF_RATING', 'E_DEF_RATING', 'DEF_RATING',
-       'E_NET_RATING', 'NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
-       'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
-       'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE',
-       'GP_RANK', 'W_RANK', 'L_RANK', 'W_PCT_RANK', 'MIN_RANK',
-       'OFF_RATING_RANK', 'DEF_RATING_RANK', 'NET_RATING_RANK',
-       'AST_PCT_RANK', 'AST_TO_RANK', 'AST_RATIO_RANK', 'OREB_PCT_RANK',
-       'DREB_PCT_RANK', 'REB_PCT_RANK', 'TM_TOV_PCT_RANK', 'EFG_PCT_RANK',
-       'TS_PCT_RANK', 'PACE_RANK', 'PIE_RANK', 'CFID', 'CFPARAMS',
-       'Gamedate', 'Playoffs']]
+                                                 'MIN', 'E_OFF_RATING', 'OFF_RATING', 'E_DEF_RATING', 'DEF_RATING',
+                                                 'E_NET_RATING', 'NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
+                                                 'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
+                                                 'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE',
+                                                 'GP_RANK', 'W_RANK', 'L_RANK', 'W_PCT_RANK', 'MIN_RANK',
+                                                 'OFF_RATING_RANK', 'DEF_RATING_RANK', 'NET_RATING_RANK',
+                                                 'AST_PCT_RANK', 'AST_TO_RANK', 'AST_RATIO_RANK', 'OREB_PCT_RANK',
+                                                 'DREB_PCT_RANK', 'REB_PCT_RANK', 'TM_TOV_PCT_RANK', 'EFG_PCT_RANK',
+                                                 'TS_PCT_RANK', 'PACE_RANK', 'PIE_RANK', 'CFID', 'CFPARAMS',
+                                                 'Gamedate', 'Playoffs']]
 
 nbadataaddon = nbadataaddon.append(playoffsaddonworking)
 nbadataaddon = nbadataaddon.reset_index()
@@ -270,43 +272,40 @@ nbadataaddonworking['Playoffs'] = 0
 if nbadataaddonworking.empty:
     nbadataaddonworking = pd.DataFrame()
 else:
-    nbadataaddonworking = nbadataaddonworking[['TEAM_ID','TEAM_NAME','GP',
-                     'W',               'L',           'W_PCT',
-                   'MIN',    'E_OFF_RATING',      'OFF_RATING',
-          'E_DEF_RATING',      'DEF_RATING',    'E_NET_RATING',
-            'NET_RATING',         'AST_PCT',          'AST_TO',
-             'AST_RATIO',        'OREB_PCT',        'DREB_PCT',
-               'REB_PCT',      'TM_TOV_PCT',         'EFG_PCT',
-                'TS_PCT',          'E_PACE',            'PACE',
-            'PACE_PER40',            'POSS',             'PIE',
-               'GP_RANK',          'W_RANK',          'L_RANK',
-            'W_PCT_RANK',        'MIN_RANK', 'OFF_RATING_RANK',
-       'DEF_RATING_RANK', 'NET_RATING_RANK',    'AST_PCT_RANK',
-           'AST_TO_RANK',  'AST_RATIO_RANK',   'OREB_PCT_RANK',
-         'DREB_PCT_RANK',    'REB_PCT_RANK', 'TM_TOV_PCT_RANK',
-          'EFG_PCT_RANK',     'TS_PCT_RANK',       'PACE_RANK',
-              'PIE_RANK',            'CFID',        'CFPARAMS',
-              'Gamedate',        'Playoffs']]
-
+    nbadataaddonworking = nbadataaddonworking[['TEAM_ID', 'TEAM_NAME', 'GP',
+                                               'W', 'L', 'W_PCT',
+                                               'MIN', 'E_OFF_RATING', 'OFF_RATING',
+                                               'E_DEF_RATING', 'DEF_RATING', 'E_NET_RATING',
+                                               'NET_RATING', 'AST_PCT', 'AST_TO',
+                                               'AST_RATIO', 'OREB_PCT', 'DREB_PCT',
+                                               'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
+                                               'TS_PCT', 'E_PACE', 'PACE',
+                                               'PACE_PER40', 'POSS', 'PIE',
+                                               'GP_RANK', 'W_RANK', 'L_RANK',
+                                               'W_PCT_RANK', 'MIN_RANK', 'OFF_RATING_RANK',
+                                               'DEF_RATING_RANK', 'NET_RATING_RANK', 'AST_PCT_RANK',
+                                               'AST_TO_RANK', 'AST_RATIO_RANK', 'OREB_PCT_RANK',
+                                               'DREB_PCT_RANK', 'REB_PCT_RANK', 'TM_TOV_PCT_RANK',
+                                               'EFG_PCT_RANK', 'TS_PCT_RANK', 'PACE_RANK',
+                                               'PIE_RANK', 'CFID', 'CFPARAMS',
+                                               'Gamedate', 'Playoffs']]
 
 nbadataaddon = nbadataaddon.append(nbadataaddonworking)
 nbadataaddon = nbadataaddon.append(playoffsaddonworking)
 
-
 nbadataaddon.reset_index().drop('index', axis=1)
 
-
 nbadataaddon = nbadataaddon[['TEAM_ID', 'TEAM_NAME', 'GP', 'W', 'L', 'W_PCT',
-       'MIN', 'E_OFF_RATING', 'OFF_RATING', 'E_DEF_RATING', 'DEF_RATING',
-       'E_NET_RATING', 'NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
-       'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
-       'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE',
-       'GP_RANK', 'W_RANK', 'L_RANK', 'W_PCT_RANK', 'MIN_RANK',
-       'OFF_RATING_RANK', 'DEF_RATING_RANK', 'NET_RATING_RANK',
-       'AST_PCT_RANK', 'AST_TO_RANK', 'AST_RATIO_RANK', 'OREB_PCT_RANK',
-       'DREB_PCT_RANK', 'REB_PCT_RANK', 'TM_TOV_PCT_RANK', 'EFG_PCT_RANK',
-       'TS_PCT_RANK', 'PACE_RANK', 'PIE_RANK', 'CFID', 'CFPARAMS',
-       'Gamedate', 'Playoffs']]
+                             'MIN', 'E_OFF_RATING', 'OFF_RATING', 'E_DEF_RATING', 'DEF_RATING',
+                             'E_NET_RATING', 'NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
+                             'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
+                             'TS_PCT', 'E_PACE', 'PACE', 'PACE_PER40', 'POSS', 'PIE',
+                             'GP_RANK', 'W_RANK', 'L_RANK', 'W_PCT_RANK', 'MIN_RANK',
+                             'OFF_RATING_RANK', 'DEF_RATING_RANK', 'NET_RATING_RANK',
+                             'AST_PCT_RANK', 'AST_TO_RANK', 'AST_RATIO_RANK', 'OREB_PCT_RANK',
+                             'DREB_PCT_RANK', 'REB_PCT_RANK', 'TM_TOV_PCT_RANK', 'EFG_PCT_RANK',
+                             'TS_PCT_RANK', 'PACE_RANK', 'PIE_RANK', 'CFID', 'CFPARAMS',
+                             'Gamedate', 'Playoffs']]
 
 nbadataaddon = nbadataaddon.drop_duplicates()
-nbadataaddon.to_csv(directory1+'nbadataytdaddon.csv')
+nbadataaddon.to_csv(directory1 + 'nbadataytdaddon.csv')
