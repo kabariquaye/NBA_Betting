@@ -830,7 +830,8 @@ betgameclick = []
 # Actual Site Log-in
 time.sleep(random.uniform(10, 20))
 driver.find_element_by_xpath('//*[@id="app"]/div/span/div/div/div/span').click()
-#prairieaccounts=[['kabariq@gmail.com', 'Balotelli09!'], ['lcao0ca', 'nba-algo-betting-2021'], ['hunter', 'nba-algo-betting-2021'],['wchienenyanga','nba-algo-betting-2021']]
+#adjust password to pull for your account
+#prairieaccounts=[['kyle's e-mail', 'kyle's password'], ['lcao0ca', 'nba-algo-betting-2021'], ['hunter', 'nba-algo-betting-2021'],['wchienenyanga','nba-algo-betting-2021']]
 montrealaccounts=[[]]
 torontoaccounts=[[]]
 
