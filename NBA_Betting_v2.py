@@ -813,6 +813,157 @@ avgrolltotalscore['avgID'] = avgrolltotalscore['TEAM_ABBREVIATION'] + avgrolltot
 avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score', 'Month']).drop_duplicates()
 
 
+modelsonly = []
+with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/models.pckl", "rb") as f:
+    while True:
+        try:
+            modelsonly.append(pickle.load(f))
+        except EOFError:
+            break
+
+models = [(modelsonly, item) for modelsonly, item in enumerate(modelsonly, start=210)]
+
+# 2022 Schedule
+Schedule2022 = pd.DataFrame(client.season_schedule(season_end_year=2022))
+Schedule2022['Season Year'] = '2022'
+Schedule2022['start_time'] = (Schedule2022['start_time'] - timedelta(hours=12)).apply(lambda x: x.strftime('%Y-%m-%d'))
+Schedule2022['away_team'] = Schedule2022['away_team'].astype('S')
+awayteams=Schedule2022['away_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
+Schedule2022['away_team'] = [x[1] for x in awayteams]
+Schedule2022['home_team'] = Schedule2022['home_team'].astype('S')
+hometeams = Schedule2022['home_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
+Schedule2022['home_team'] = [x[1] for x in hometeams]
+Schedule2022 = pd.merge(Schedule2022, teammapping, left_on=Schedule2022['home_team'], right_on=teammapping['Team_Names'],
+                    how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'HOME_TEAM_ABBREVIATION'})
+Schedule2022 = Schedule2022.drop('key_0', axis=1)
+Schedule2022 = pd.merge(Schedule2022, teammapping, left_on=Schedule2022['away_team'], right_on=teammapping['Team_Names'],
+                    how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'AWAY_TEAM_ABBREVIATION'})
+gamestoday=Schedule2022[Schedule2022['start_time']==str(datetime.datetime.today().date())]
+gamestoday=gamestoday.reset_index().drop('index',axis=1)
+
+completetesting = pd.DataFrame()
+predicted=[]
+
+for j in range(0, len(gamestoday)):
+    testing = pd.DataFrame()
+    str(datetime.datetime.today().date())
+    home = gamestoday['HOME_TEAM_ABBREVIATION'][j]
+    opponent = gamestoday['AWAY_TEAM_ABBREVIATION'][j]
+    date_format = "%Y-%m-%d"
+    teamstanding1 = standing[(standing['Index'] == home) & (standing['Season Year'] == currentyear)][
+        'Team Rank'].reset_index()
+    teamstanding2 = standing[(standing['Index'] == opponent) & (standing['Season Year'] == currentyear)][
+        'Team Rank'].reset_index()
+    testing = pd.concat([testing, teamstanding2], axis=1).drop('index', axis=1)
+    testing = testing.rename(columns={'Team Rank': 'Opponent Rank'})
+    testing = pd.concat([testing, teamstanding1], axis=1).drop('index', axis=1)
+    a = datetime.datetime.today()
+    b = datetime.datetime.strptime(max(nbadata[nbadata['TEAM_ABBREVIATION'] == home]['Gamedate']), date_format)
+    c = datetime.datetime.strptime(max(nbadata[nbadata['TEAM_ABBREVIATION'] == opponent]['Gamedate']), date_format)
+    delta = a - b
+    delta2 = a - c
+    testing['HomeDaysRest'] = min(delta.days, 5)
+    testing['AwayDaysRest'] = min(delta2.days, 5)
+
+    if conference[conference['Team'] == home]['Conference'].reset_index()['Conference'][0] == 'E':
+
+        testing['ConferenceBinary'] = 1
+    else:
+        testing['ConferenceBinary'] = 0
+
+    if conference[conference['Team'] == opponent]['Conference'].reset_index()['Conference'][0] == 'E':
+        testing['OpponentConferenceBinary'] = 1
+    else:
+        testing['OpponentConferenceBinary'] = 0
+
+    testing['S2015'] = 0
+    testing['S2016'] = 0
+    testing['S2017'] = 0
+    testing['S2018'] = 0
+    testing['S2019'] = 0
+    testing['S2020'] = 0
+    testing['S2021'] = 0
+    testing['S2022'] = 1
+
+    testteamscoring = teamscoring[
+        (teamscoring['TEAM_ABBREVIATION'] == home) & ((teamscoring['Season Year'] == currentyear))].reset_index()
+    testing['Average_Team_Score'] = np.mean(
+        testteamscoring['Team_Score'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
+    testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == home) & (
+                totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)['TotalScore']
+    testing['Average_Team_Total_Score'] = np.mean(testscoring.loc[len(testscoring) - 5:len(testscoring)])
+    testteamscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == opponent) & (
+    (teamscoring['Season Year'] == currentyear))].reset_index()
+    testing['Average_Opp_Team_Score'] = np.mean(
+        testteamscoring['Team_Score'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
+    testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == opponent) & (
+                totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)['TotalScore']
+    testing['Average_Opp_Total_Score'] = np.mean(testscoring.loc[len(testscoring) - 5:len(testscoring)])
+
+    testing['Team_Last_Game_Score'] = \
+    schedule[(schedule['HOME_TEAM_ABBREVIATION'] == home) & (schedule['Season Year'] == currentyear)].filter(
+        ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
+        columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(
+        schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == home) & (schedule['Season Year'] == currentyear)].filter(
+            ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
+            columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
+        ['start_time'], ascending=False)['team_score'].iloc[0]
+    testing['Opponent_Last_Game_Score'] = \
+    schedule[(schedule['HOME_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
+        ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
+        columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
+        ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
+        columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
+        ['start_time'], ascending=False)['team_score'].iloc[0]
+    testinghome=avgHomeStats[avgHomeStats['Team']==home][['AvgHPF', 'AvgHFGM','AvgHBLK', 'AvgHFG3M', 'AvgHOREB','AvgHAST', 'AvgHREB', 'AvgHSTL','AvgHAST_PCT', 'AvgHAST_TO', 'AvgHAST_RATIO', 'AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT','AvgHTM_TOV_PCT', 'AvgHEFG_PCT', 'AvgHTS_PCT', 'AvgHE_PACE', 'AvgHPACE', 'AvgHPACE_PER40', 'AvgHPOSS', 'AvgHPIE']].tail(1).reset_index()
+    testingaway=avgAwayStats[avgAwayStats['Team']==opponent][['AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgAAST_PCT', 'AvgAAST_TO', 'AvgAAST_RATIO', 'AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT','AvgATM_TOV_PCT', 'AvgAEFG_PCT', 'AvgATS_PCT', 'AvgAE_PACE', 'AvgAPACE', 'AvgAPACE_PER40', 'AvgAPOSS', 'AvgAPIE']].tail(1).reset_index()
+    testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
+    testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
+    testing['Playoffs']=0
+    testing['HomeTeam']=home
+    completetesting = completetesting.append(testing)
+# completetesing=completetesting[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016', 'S2018',
+# 'S2019', 'S2020', 'S2021','S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
+# 'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
+# 'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgHPF', 'AvgHFGM',
+# 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB','AvgHAST', 'AvgHREB', 'AvgHSTL','Playoffs','AvgHAST_PCT','AvgHAST_TO', 'AvgHAST_RATIO','AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT',
+# 'AvgHTM_TOV_PCT', 'AvgHEFG_PCT','AvgHTS_PCT', 'AvgHE_PACE', 'AvgHPACE', 'AvgHPACE_PER40', 'AvgHPOSS', 'AvgHPIE','AvgAAST_PCT','AvgAAST_TO', 'AvgAAST_RATIO','AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT',
+#                 'AvgATM_TOV_PCT', 'AvgAEFG_PCT','AvgATS_PCT', 'AvgAE_PACE', 'AvgAPACE', 'AvgAPACE_PER40', 'AvgAPOSS', 'AvgAPIE']]
+
+completetesting = completetesting[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2016', 'S2017','S2018'
+     ,'S2019', 'S2020', 'S2021','S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
+     'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
+     'Playoffs','HomeTeam']]
+completetesting=completetesting.reset_index().drop('index',axis=1)
+scorerange=range(75,150)
+newdf = pd.DataFrame(np.repeat(completetesting.values, len(scorerange), axis=0),columns = completetesting.columns)
+newdf = pd.concat([completetesting]*len(scorerange), axis=0)
+repeat=int(len(newdf)/len(scorerange))
+scoregrid=pd.DataFrame(scorerange,columns={'0': 'TotalQ2'})
+newdf['TotalQ2']=np.repeat(scoregrid.values, repeat, axis=0)
+hometeams=newdf['HomeTeam']
+newdf=newdf.reset_index().drop(['index','HomeTeam'],axis=1)
+completetesting=newdf
+
+benchmark = [item[0] for item in models]
+gridpredict=[]
+for score in benchmark:
+    predictiongrid = []
+    for j in range(0,len(completetesting)):
+        prob=models[int(math.floor(float(score)))-210][1].predict_proba(newdf.iloc[j:j+1,:])[0][1]
+        predictiongrid.insert(j,[score,prob,completetesting['TotalQ2'][j]])
+    data=pd.DataFrame(predictiongrid)
+    data[3]=hometeams.reset_index().drop('index',axis=1)
+    data.rename(columns={0:'TotalScore',1:'Prob',2:'Q2',3:'HomeTeam'})
+    gridpredict.insert(benchmark.index(score),[score,data])
+
+def pullprobability(teamhome,q2,bettotal):
+    prob=gridpredict[benchmark.index(bettotal)][1]
+    print(prob[(prob['HomeTeam']==teamhome)&(prob['Q2'].between(q2,q2+5))])
+
+
+
+
 import undetected_chromedriver.v2 as uc
 import datetime
 driver = uc.Chrome(directory1+'chromedriver')  # need to have the right version of chromedriver installed on computer.
@@ -830,8 +981,7 @@ betgameclick = []
 # Actual Site Log-in
 time.sleep(random.uniform(10, 20))
 driver.find_element_by_xpath('//*[@id="app"]/div/span/div/div/div/span').click()
-#adjust password to pull for your account
-#prairieaccounts=[['kyle's e-mail', 'kyle's password'], ['lcao0ca', 'nba-algo-betting-2021'], ['hunter', 'nba-algo-betting-2021'],['wchienenyanga','nba-algo-betting-2021']]
+#prairieaccounts=[['kabariq@gmail.com', 'Balotelli09!'], ['lcao0ca', 'nba-algo-betting-2021'], ['hunter', 'nba-algo-betting-2021'],['wchienenyanga','nba-algo-betting-2021']]
 montrealaccounts=[[]]
 torontoaccounts=[[]]
 
@@ -1049,135 +1199,3 @@ cutpoints = list((set(bets['Over-Under Scores'])))
 # bet = """driver.find_element_by_xpath('//*[@id="betcard-container"]/div/div/div/div[2]/div[1]/div/form/div/div/div[2]/div[1]/input').send_keys(betamount)"""
 # placebet = """driver.find_element_by_xpath('//*[@id="betcard-container"]/div/div/div/div[2]/div[1]/div/form/div/div/div[2]/div[1]/input').send_keys(betamount)"""
 # loadmodelfromfile
-
-modelsonly = []
-with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/models.pckl", "rb") as f:
-    while True:
-        try:
-            modelsonly.append(pickle.load(f))
-        except EOFError:
-            break
-
-models = [(modelsonly, item) for modelsonly, item in enumerate(modelsonly, start=210)]
-
-completetesting = pd.DataFrame()
-predicted=[]
-
-for j in range(0, len(bets)):
-
-    testing = pd.DataFrame()
-
-    home = bets['Home Abbreviation'][j]
-    opponent = bets['Away Abbreviation'][j]
-
-    teamstanding1 = standing[(standing['Index'] == home) & (standing['Season Year'] == currentyear)][
-        'Team Rank'].reset_index()
-    teamstanding2 = standing[(standing['Index'] == opponent) & (standing['Season Year'] == currentyear)][
-        'Team Rank'].reset_index()
-    testing = pd.concat([testing, teamstanding2], axis=1).drop('index', axis=1)
-    testing = testing.rename(columns={'Team Rank': 'Opponent Rank'})
-    testing = pd.concat([testing, teamstanding1], axis=1).drop('index', axis=1)
-    a = datetime.datetime.today()
-    date_format = "%Y-%m-%d"
-    b = datetime.datetime.strptime(max(nbadata[nbadata['TEAM_ABBREVIATION'] == home]['Gamedate']), date_format)
-    c = datetime.datetime.strptime(max(nbadata[nbadata['TEAM_ABBREVIATION'] == opponent]['Gamedate']), date_format)
-    delta = a - b
-    delta2 = a - c
-    testing['HomeDaysRest'] = min(delta.days, 5)
-    testing['AwayDaysRest'] = min(delta2.days, 5)
-
-    if conference[conference['Team'] == home]['Conference'].reset_index()['Conference'][0] == 'E':
-
-        testing['ConferenceBinary'] = 1
-    else:
-        testing['ConferenceBinary'] = 0
-
-    if conference[conference['Team'] == opponent]['Conference'].reset_index()['Conference'][0] == 'E':
-        testing['OpponentConferenceBinary'] = 1
-    else:
-        testing['OpponentConferenceBinary'] = 0
-
-    testing['S2015'] = 0
-    testing['S2016'] = 0
-    testing['S2017'] = 0
-    testing['S2018'] = 0
-    testing['S2019'] = 0
-    testing['S2020'] = 0
-    testing['S2021'] = 0
-    testing['S2022'] = 1
-
-    testteamscoring = teamscoring[
-        (teamscoring['TEAM_ABBREVIATION'] == home) & ((teamscoring['Season Year'] == currentyear))].reset_index()
-    testing['Average_Team_Score'] = np.mean(
-        testteamscoring['Team_Score'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
-    testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == home) & (
-                totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)['TotalScore']
-    testing['Average_Team_Total_Score'] = np.mean(testscoring.loc[len(testscoring) - 5:len(testscoring)])
-    testteamscoring = teamscoring[(teamscoring['TEAM_ABBREVIATION'] == opponent) & (
-    (teamscoring['Season Year'] == currentyear))].reset_index()
-    testing['Average_Opp_Team_Score'] = np.mean(
-        testteamscoring['Team_Score'].iloc[len(testteamscoring) - 5:len(testteamscoring)])
-    testscoring = totalscoring[(totalscoring['TEAM_ABBREVIATION'] == opponent) & (
-                totalscoring['Season Year'] == currentyear)].reset_index().drop_duplicates().drop('index', axis=1)['TotalScore']
-    testing['Average_Opp_Total_Score'] = np.mean(testscoring.loc[len(testscoring) - 5:len(testscoring)])
-
-    testing['Team_Last_Game_Score'] = \
-    schedule[(schedule['HOME_TEAM_ABBREVIATION'] == home) & (schedule['Season Year'] == currentyear)].filter(
-        ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
-        columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(
-        schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == home) & (schedule['Season Year'] == currentyear)].filter(
-            ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
-            columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
-        ['start_time'], ascending=False)['team_score'].iloc[0]
-    testing['Opponent_Last_Game_Score'] = \
-    schedule[(schedule['HOME_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
-        ['HOME_TEAM_ABBREVIATION', 'home_team_score', 'start_time']).rename(
-        columns={'HOME_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'home_team_score': 'team_score'}).append(schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == opponent) & (schedule['Season Year'] == currentyear)].filter(
-        ['AWAY_TEAM_ABBREVIATION', 'away_team_score', 'start_time']).rename(
-        columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
-        ['start_time'], ascending=False)['team_score'].iloc[0]
-    testinghome=avgHomeStats[avgHomeStats['Team']==home][['AvgHPF', 'AvgHFGM','AvgHBLK', 'AvgHFG3M', 'AvgHOREB','AvgHAST', 'AvgHREB', 'AvgHSTL','AvgHAST_PCT', 'AvgHAST_TO', 'AvgHAST_RATIO', 'AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT','AvgHTM_TOV_PCT', 'AvgHEFG_PCT', 'AvgHTS_PCT', 'AvgHE_PACE', 'AvgHPACE', 'AvgHPACE_PER40', 'AvgHPOSS', 'AvgHPIE']].tail(1).reset_index()
-    testingaway=avgAwayStats[avgAwayStats['Team']==opponent][['AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgAAST_PCT', 'AvgAAST_TO', 'AvgAAST_RATIO', 'AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT','AvgATM_TOV_PCT', 'AvgAEFG_PCT', 'AvgATS_PCT', 'AvgAE_PACE', 'AvgAPACE', 'AvgAPACE_PER40', 'AvgAPOSS', 'AvgAPIE']].tail(1).reset_index()
-    testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
-    testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
-    testing['Playoffs']=0
-    testing['HomeTeam']=home
-    completetesting = completetesting.append(testing)
-# completetesing=completetesting[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016', 'S2018',
-# 'S2019', 'S2020', 'S2021','S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
-# 'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
-# 'AvgAPF', 'AvgAFGM', 'AvgABLK', 'AvgAFG3M', 'AvgAOREB', 'AvgAAST', 'AvgAREB', 'AvgASTL', 'AvgHPF', 'AvgHFGM',
-# 'AvgHBLK', 'AvgHFG3M', 'AvgHOREB','AvgHAST', 'AvgHREB', 'AvgHSTL','Playoffs','AvgHAST_PCT','AvgHAST_TO', 'AvgHAST_RATIO','AvgHOREB_PCT', 'AvgHDREB_PCT', 'AvgHREB_PCT',
-# 'AvgHTM_TOV_PCT', 'AvgHEFG_PCT','AvgHTS_PCT', 'AvgHE_PACE', 'AvgHPACE', 'AvgHPACE_PER40', 'AvgHPOSS', 'AvgHPIE','AvgAAST_PCT','AvgAAST_TO', 'AvgAAST_RATIO','AvgAOREB_PCT', 'AvgADREB_PCT', 'AvgAREB_PCT',
-#                 'AvgATM_TOV_PCT', 'AvgAEFG_PCT','AvgATS_PCT', 'AvgAE_PACE', 'AvgAPACE', 'AvgAPACE_PER40', 'AvgAPOSS', 'AvgAPIE']]
-
-completetesting = completetesting[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2016', 'S2017','S2018'
-     ,'S2019', 'S2020', 'S2021','S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
-     'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
-     'Playoffs','HomeTeam']]
-scorerange=range(75,150)
-newdf = pd.DataFrame(np.repeat(completetesting.values, len(scorerange), axis=0),columns = completetesting.columns)
-newdf = pd.concat([completetesting]*len(scorerange), axis=0)
-repeat=int(len(newdf)/len(scorerange))
-scoregrid=pd.DataFrame(scorerange,columns={'0': 'TotalQ2'})
-newdf['TotalQ2']=np.repeat(scoregrid.values, repeat, axis=0)
-hometeams=newdf['HomeTeam']
-newdf=newdf.reset_index().drop(['index','HomeTeam'],axis=1)
-completetesting=newdf
-
-benchmark = [item[0] for item in models]
-gridpredict=[]
-for score in benchmark:
-    predictiongrid = []
-    for j in range(0,len(completetesting)):
-        prob=models[int(math.floor(float(score)))-210][1].predict_proba(newdf.iloc[j:j+1,:])[0][1]
-        predictiongrid.insert(j,[score,prob,completetesting['TotalQ2'][j]])
-    data=pd.DataFrame(predictiongrid)
-    data[3]=hometeams.reset_index().drop('index',axis=1)
-    data.rename(columns={0:'TotalScore',1:'Prob',2:'Q2',3:'HomeTeam'})
-    gridpredict.insert(benchmark.index(score),[score,data])
-
-def pullprobability(teamhome,q2,bettotal):
-    prob=gridpredict[benchmark.index(bettotal)][1]
-    print(prob[(prob['HomeTeam']==teamhome)&(prob['Q2'].between(q2,q2+5))])
-
