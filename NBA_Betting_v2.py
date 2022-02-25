@@ -110,7 +110,7 @@ schedule = pd.DataFrame()
 # Append each schedule and do appropriate conversions
 schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(
     Schedule2018).append(
-    Schedule2017).append(Schedule2017).append(Schedule2016).append(Schedule2015).append(Schedule2014).append(
+    Schedule2017).append(Schedule2016).append(Schedule2015).append(Schedule2014).append(
     Schedule2013).append(Schedule2012).append(Schedule2011).append(Schedule2010)
 schedule['start_time'] = schedule['start_time'] - timedelta(hours=12)
 schedule['start_time'] = schedule['start_time'].apply(lambda x: x.strftime('%Y-%m-%d'))
@@ -303,8 +303,7 @@ nbadata = nbadata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', '
                    'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs']]
 
 execfile('/Users/kabariquaye/PycharmProjects/pythonProject1/AdditionalData.py')
-nbadataaddon = pd.read_csv(directory1+'nbadataytdaddon.csv',
-                           low_memory=False)
+nbadataaddon = pd.read_csv(directory1+'nbadataytdaddon.csv',low_memory=False)
 nbadata['TEAM_ID'] = nbadata['TEAM_ID'].astype(str)
 nbadataaddon['ID'] = nbadataaddon['Gamedate'].astype(str) + nbadataaddon['TEAM_ID'].astype(str).str[:-2]
 nbadataaddon = nbadataaddon[
@@ -361,13 +360,10 @@ Schedule2014['Season Year'] = '2014'
 
 schedule = pd.DataFrame()
 
-schedulelist = [Schedule2022, Schedule2021, Schedule2020, Schedule2019, Schedule2018, Schedule2017, Schedule2016,
-                Schedule2015, Schedule2014]
+schedulelist = [Schedule2022, Schedule2021, Schedule2020, Schedule2019, Schedule2018, Schedule2017, Schedule2016,Schedule2015, Schedule2014]
 # Schedule2021.filter(['start_time','home_team_score'])
 
-schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(
-    Schedule2018).append(
-    Schedule2017).append(Schedule2017).append(Schedule2016).append(Schedule2015).append(Schedule2014)
+schedule = schedule.append(Schedule2022).append(Schedule2021).append(Schedule2020).append(Schedule2019).append(Schedule2018).append(Schedule2017).append(Schedule2016).append(Schedule2015).append(Schedule2014)
 schedule['start_time'] = schedule['start_time'] - timedelta(hours=12)
 schedule['start_time'] = schedule['start_time'].apply(lambda x: x.strftime('%Y-%m-%d'))
 schedule['away_team'] = schedule['away_team'].astype('S')
@@ -812,16 +808,59 @@ avgrolltotalscore['avgID'] = avgrolltotalscore['TEAM_ABBREVIATION'] + avgrolltot
 
 avgrolltotalscore = avgrolltotalscore.filter(['avgID', 'Avg Score', 'Month']).drop_duplicates()
 
+execfile('/Users/kabariquaye/PycharmProjects/pythonProject1/offdefrating.py')
+offdefrating = pd.read_csv(directory1+'offdefrating.csv',low_memory=False)
+offdefrating['TEAM_NAME'] = offdefrating['TEAM_NAME'].str.replace(" ", "_").str.upper()
+offdefrating = pd.merge(offdefrating, teammapping, left_on=offdefrating['TEAM_NAME'], right_on=teammapping['Team_Names'],how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'TEAM_ABBREVIATION'})
+offdefrating['ID']= offdefrating['TEAM_ABBREVIATION'].astype(str)+offdefrating['Gamedate'].astype(str)
+offdefratingH=offdefrating[['ID','OFF_RATING', 'DEF_RATING']]
+offdefratingA=offdefrating[['ID','OFF_RATING', 'DEF_RATING']]
+schedule['home_teamID'] = schedule['HOME_TEAM_ABBREVIATION'] + schedule['start_time']
+schedule['away_teamID'] = schedule['AWAY_TEAM_ABBREVIATION'] + schedule['start_time']
+schedule['TotalScore'] = schedule['home_team_score'] + schedule['away_team_score']
+schedule= pd.merge(schedule,offdefratingH,left_on=schedule['home_teamID'],right_on=offdefrating['ID'],how='left').rename(columns={'OFF_RATING':'HOFF_RATING','DEF_RATING':'HDEF_RATING'}).drop('ID',axis=1)
+schedule = schedule.drop('key_0', axis=1)
+schedule= pd.merge(schedule,offdefratingA,left_on=schedule['away_teamID'],right_on=offdefrating['ID'],how='left').rename(columns={'OFF_RATING':'AOFF_RATING','DEF_RATING':'ADEF_RATING'}).drop('ID',axis=1)
+schedule=schedule.drop_duplicates()
 
-modelsonly = []
-with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/models.pckl", "rb") as f:
-    while True:
+scheduleoffdefH = []
+tempscoring=pd.DataFrame()
+for s in list(schedule['Season Year'].unique()):
+    for i in list(schedule['HOME_TEAM_ABBREVIATION'].unique()):
         try:
-            modelsonly.append(pickle.load(f))
-        except EOFError:
-            break
+            tempscoring = schedule[(schedule['HOME_TEAM_ABBREVIATION'] == i) & ((schedule['Season Year'] == s))].dropna().reset_index()
+        except:
+            tempscoring = schedule[(schedule['HOME_TEAM_ABBREVIATION'] == i) & ((schedule['Season Year'] == s))].drop('level_0',axis=1).dropna().reset_index()
+        for j in range(averaging+1, len(tempscoring)):
+            tempmeanframe = tempscoring.loc[j - (averaging+1):j - 1]
+            gamedate = tempscoring['start_time'][j]
+            tempmean = np.mean(tempmeanframe['HOFF_RATING'])
+            tempmean2 = np.mean(tempmeanframe['HDEF_RATING'])
+            scheduleoffdefH.insert(0, [i, s, gamedate, tempmean,tempmean2])
 
-models = [(modelsonly, item) for modelsonly, item in enumerate(modelsonly, start=210)]
+scheduleoffdefH = pd.DataFrame(scheduleoffdefH).rename(columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg_HOFFRATING', 4: 'Avg_HDEFRATING'}).drop_duplicates()
+scheduleoffdefH['ID']=scheduleoffdefH['TEAM_ABBREVIATION']+scheduleoffdefH['Date']
+scheduleoffdefH=scheduleoffdefH.reset_index()
+
+scheduleoffdefA = []
+tempscoring=pd.DataFrame()
+
+for s in list(schedule['Season Year'].unique()):
+    for i in list(schedule['AWAY_TEAM_ABBREVIATION'].unique()):
+        try:
+            tempscoring = schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == i) & ((schedule['Season Year'] == s))].dropna().reset_index()
+        except:
+            tempscoring = schedule[(schedule['AWAY_TEAM_ABBREVIATION'] == i) & ((schedule['Season Year'] == s))].drop('level_0',axis=1).dropna().reset_index()
+        for j in range(averaging+1, len(tempscoring)):
+            tempmeanframe = tempscoring.loc[j - (averaging+1):j - 1]
+            gamedate = tempscoring['start_time'][j]
+            tempmean = np.mean(tempmeanframe['AOFF_RATING'])
+            tempmean2 = np.mean(tempmeanframe['ADEF_RATING'])
+            scheduleoffdefA.insert(0, [i, s, gamedate, tempmean,tempmean2])
+
+scheduleoffdefA = pd.DataFrame(scheduleoffdefA).rename(columns={0: 'TEAM_ABBREVIATION', 1: 'Season Year', 2: 'Date', 3: 'Avg_AOFFRATING', 4: 'Avg_ADEFRATING'}).drop_duplicates()
+scheduleoffdefA['ID']=scheduleoffdefA['TEAM_ABBREVIATION']+scheduleoffdefA['Date']
+scheduleoffdefA=scheduleoffdefA.reset_index()
 
 # 2022 Schedule
 Schedule2022 = pd.DataFrame(client.season_schedule(season_end_year=2022))
@@ -921,6 +960,10 @@ for j in range(0, len(gamestoday)):
     testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
     testing['Playoffs']=0
     testing['HomeTeam']=home
+    testing['Avg_HOFFRATING'] = scheduleoffdefH[(scheduleoffdefH['TEAM_ABBREVIATION']==home)&(scheduleoffdefH['Season Year']=='2022')]['Avg_HOFFRATING'].head(1).reset_index().drop('index',axis=1)
+    testing['Avg_HDEFRATING'] = scheduleoffdefH[(scheduleoffdefH['TEAM_ABBREVIATION']==home)&(scheduleoffdefH['Season Year']=='2022')]['Avg_HDEFRATING'].head(1).reset_index().drop('index',axis=1)
+    testing['Avg_AOFFRATING'] = scheduleoffdefA[(scheduleoffdefA['TEAM_ABBREVIATION']==opponent)&(scheduleoffdefA['Season Year']=='2022')]['Avg_AOFFRATING'].head(1).reset_index().drop('index',axis=1)
+    testing['Avg_ADEFRATING'] = scheduleoffdefA[(scheduleoffdefA['TEAM_ABBREVIATION']==opponent)&(scheduleoffdefA['Season Year']=='2022')]['Avg_ADEFRATING'].head(1).reset_index().drop('index',axis=1)
     completetesting = completetesting.append(testing)
 # completetesing=completetesting[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2018', 'S2016', 'S2018',
 # 'S2019', 'S2020', 'S2021','S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
@@ -933,8 +976,19 @@ for j in range(0, len(gamestoday)):
 completetesting = completetesting[['HomeDaysRest', 'AwayDaysRest', 'ConferenceBinary', 'OpponentConferenceBinary', 'S2015', 'S2016', 'S2017','S2018'
      ,'S2019', 'S2020', 'S2021','S2022', 'Team Rank', 'Opponent Rank', 'Opponent_Last_Game_Score', 'Team_Last_Game_Score',
      'Average_Team_Score', 'Average_Opp_Team_Score', 'Average_Team_Total_Score', 'Average_Opp_Total_Score',
-     'Playoffs','HomeTeam']]
+     'Playoffs','HomeTeam','AvgPF']]
 completetesting=completetesting.reset_index().drop('index',axis=1)
+
+modelsonly = []
+with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/modelsq2_final.pckl", "rb") as f:
+    while True:
+        try:
+            modelsonly.append(pickle.load(f))
+        except EOFError:
+            break
+
+models = [(modelsonly, item) for modelsonly, item in enumerate(modelsonly, start=200)]
+
 scorerange=range(75,150)
 newdf = pd.DataFrame(np.repeat(completetesting.values, len(scorerange), axis=0),columns = completetesting.columns)
 newdf = pd.concat([completetesting]*len(scorerange), axis=0)
@@ -962,8 +1016,6 @@ def pullprobability(teamhome,q2,bettotal):
     print(prob[(prob['HomeTeam']==teamhome)&(prob['Q2'].between(q2,q2+5))])
 
 
-
-
 import undetected_chromedriver.v2 as uc
 import datetime
 driver = uc.Chrome(directory1+'chromedriver')  # need to have the right version of chromedriver installed on computer.
@@ -981,7 +1033,7 @@ betgameclick = []
 # Actual Site Log-in
 time.sleep(random.uniform(10, 20))
 driver.find_element_by_xpath('//*[@id="app"]/div/span/div/div/div/span').click()
-#prairieaccounts=[['kabariq@gmail.com', 'Balotelli09!'], ['lcao0ca', 'nba-algo-betting-2021'], ['hunter', 'nba-algo-betting-2021'],['wchienenyanga','nba-algo-betting-2021']]
+prairieaccounts=[['kabariq@gmail.com', 'Balotelli09!'], ['lcao0ca', 'nba-algo-betting-2021'], ['hunter', 'nba-algo-betting-2021'],['wchienenyanga','nba-algo-betting-2021']]
 montrealaccounts=[[]]
 torontoaccounts=[[]]
 
