@@ -109,7 +109,7 @@ for s in seasonyears:
 
 datelist=dates
 datelist=datelist.reset_index()
-quarterdata=pd.read_csv(directory1+'nbadataytd_quarterly.csv',low_memory=False)
+quarterdata=pd.read_csv(directory1+'nbadataytd_quarterly_v2.csv',low_memory=False)
 quarterdata=quarterdata[['TEAM_ID', 'TEAM_NAME', 'GP', 'W', 'L', 'W_PCT', 'MIN',
        'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA',
        'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV', 'STL', 'BLK', 'BLKA',
@@ -142,7 +142,7 @@ for period in range(0,4):
                 day1 = datelist[e][8:10]
                 a='https://stats.nba.com/stats/leaguedashteamstats?Conference=&DateFrom='
                 if datelist[e] in dataytd[0].tolist():
-                    b='&Division=&GameScope=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period='+str(period+1)+'&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2021-22&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision='
+                    b='&Division=&GameScope=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period='+str(period+1)+'&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2022-23&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision='
                 elif datelist[e] in dataytd[1].tolist():
                     b='&Division=&GameScope=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period='+str(period+1)+'&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2021-22&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision='
                 elif datelist[e] in dataytd[2].tolist():
@@ -163,7 +163,7 @@ for period in range(0,4):
                     b='&Division=&GameScope=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period='+str(period+1)+'&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2014-15&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision='
                 c='&DateTo='
                 d='%2F'
-                headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4692.45 Safari/537.36','x-nba-stats-origin': 'stats', 'x-nba-stats-token': 'true', 'Referer': 'https://www.nba.com/','Host': 'stats.nba.com','Origin': 'https://www.nba.com'}
+                headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36','x-nba-stats-origin': 'stats', 'x-nba-stats-token': 'true', 'Referer': 'https://www.nba.com/','Host': 'stats.nba.com','Origin': 'https://www.nba.com'}
                 url = a+month1+d+day1+d+year1+c+month1+d+day1+d+year1+b
                 r=requests.get(url,headers=headers)
                 numrecords = len(r.json()['resultSets'][0]['rowSet'])
@@ -217,7 +217,7 @@ for period in range(0,4):
                     b='&Division=&GameScope=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period='+str(period+1)+'&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2014-15&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision='
                 c='&DateTo='
                 d='%2F'
-                headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4692.45 Safari/537.36','x-nba-stats-origin': 'stats', 'x-nba-stats-token': 'true', 'Referer': 'https://www.nba.com/','Host': 'stats.nba.com','Origin': 'https://www.nba.com'}
+                headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36','x-nba-stats-origin': 'stats', 'x-nba-stats-token': 'true', 'Referer': 'https://www.nba.com/','Host': 'stats.nba.com','Origin': 'https://www.nba.com'}
                 url = a+month1+d+day1+d+year1+c+month1+d+day1+d+year1+b
                 r=requests.get(url,headers=headers)
                 numrecords = len(r.json()['resultSets'][0]['rowSet'])
@@ -240,8 +240,8 @@ for i in range(0,len(quarterdataplayoffslist)):
     quartertempplayoffs['Quarter'] = quarterdataplayoffslist[i][2]
     quarterworkingplayoffs=quarterworkingplayoffs.append(quartertempplayoffs)
 
-quarterdata=quarterdata.append(quarterworking)
-quarterdata=quarterdata.append(quarterworkingplayoffs)
+quarterdata=quarterdata.append(quarterworking).reset_index()
+quarterdata=quarterdata.append(quarterworkingplayoffs).reset_index()
 
 directory1='/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/'
 
@@ -254,7 +254,7 @@ quarterdata=quarterdata[['TEAM_ID', 'TEAM_NAME', 'GP', 'W', 'L', 'W_PCT',
        'FT_PCT_RANK', 'OREB_RANK', 'DREB_RANK', 'REB_RANK', 'AST_RANK',
        'TOV_RANK', 'STL_RANK', 'BLK_RANK', 'BLKA_RANK', 'PF_RANK', 'PFD_RANK',
        'PTS_RANK', 'PLUS_MINUS_RANK', 'CFID', 'CFPARAMS', 'Gamedate',
-       'Quarter', 'Playoffs']]
+       'Quarter']]
 
 quarterdata=quarterdata.drop_duplicates()
 
@@ -597,168 +597,187 @@ nbaschedule['ScheduleID2'] = nbaschedule['schedule'] + nbaschedule['Team']
 
 nbaschedule = nbaschedule[nbaschedule['schedule'].isin(quarterdata['Gamedate'].unique())]
 
-# playerqdata=pd.read_csv(directory1+'playerytd_quarterly.csv')
-#
-# playerdatalist = []
-# playoffslist = []
-#
-# for period in range(0, 4):
-#     for e in range(0, len(datelist)):
-#         try:
-#             year1 = datelist[e][:4]
-#             month1 = datelist[e][5:7]
-#             day1 = datelist[e][8:10]
-#             a = 'https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom='
-#             if datelist[e] in dataytd[0].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2021-22&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[1].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2020-21&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[2].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2019-20&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[3].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2018-19&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[4].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2017-18&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[5].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2016-17&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[6].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2015-16&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[6].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2014-15&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             c = '&DateTo='
-#             d = '%2F'
-#             headers = {
-#                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.42 Safari/537.36',
-#                 'x-nba-stats-origin': 'stats'}
-#             url = a + month1 + d + day1 + d + year1 + c + month1 + d + day1 + d + year1 + b
-#             r = requests.get(url, headers=headers)
-#             numrecords = len(r.json()['resultSets'][0]['rowSet'])
-#             fields = r.json()['resultSets'][0]['headers']
-#             data = pd.DataFrame(index=np.arange(numrecords), columns=fields)
-#             for i in range(0, numrecords):
-#                 records = r.json()['resultSets'][0]['rowSet'][i]
-#                 for j in range(0, len(records)):
-#                     data.iloc[[i], [j]] = records[j]
-#             playerdatalist.insert(e, [data, datelist[e],period+1])
-#         except:
-#             pass
-#
-# for period in range(0, 4):
-#     for e in range(0, len(datelist)):
-#         try:
-#             year1 = datelist[e][:4]
-#             month1 = datelist[e][5:7]
-#             day1 = datelist[e][8:10]
-#             a = 'https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom='
-#             if datelist[e] in dataytd[0].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2020-21&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[1].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2019-20&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[2].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2018-19&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[3].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2017-18&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[4].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2016-17&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[5].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2015-16&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             elif datelist[e] in dataytd[6].tolist():
-#                 b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
-#                     period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2014-15&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
-#             c = '&DateTo='
-#             d = '%2F'
-#             headers = {
-#                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
-#                 'x-nba-stats-origin': 'stats', 'x-nba-stats-token': 'true', 'Referer': 'https://www.nba.com/'}
-#             url = a + month1 + d + day1 + d + year1 + c + month1 + d + day1 + d + year1 + b
-#             r = requests.get(url, headers=headers)
-#             numrecords = len(r.json()['resultSets'][0]['rowSet'])
-#             fields = r.json()['resultSets'][0]['headers']
-#             data = pd.DataFrame(index=np.arange(numrecords), columns=fields)
-#             for i in range(0, numrecords):
-#                 records = r.json()['resultSets'][0]['rowSet'][i]
-#                 for j in range(0, len(records)):
-#                     data.iloc[[i], [j]] = records[j]
-#             playoffslist.insert(e, [data, datelist[e],period+1])
-#         except:
-#             pass
-#
-# playoffsworking = pd.DataFrame()
-# playoffstemp = pd.DataFrame()
-#
-# # Read the data from the website into a dataframe
-# for i in range(0, len(playoffslist)):
-#     playoffstemp = pd.DataFrame(playoffslist[i][0])
-#     playoffstemp['Gamedate'] = playoffslist[i][1]
-#     playoffsworking = playoffsworking.append(playoffstemp)
-#
-# playoffsworking['Playoffs'] = 1
-#
-# if not (playoffsworking.empty):
-#     playoffsdata = playoffsworking[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
-#                                     'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
-#                                     'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV',
-#                                     'STL', 'BLK', 'BLKA', 'PF', 'PFD', 'PTS', 'PLUS_MINUS',
-#                                     'NBA_FANTASY_PTS', 'DD2', 'TD3', 'GP_RANK', 'W_RANK', 'L_RANK',
-#                                     'W_PCT_RANK', 'MIN_RANK', 'FGM_RANK', 'FGA_RANK', 'FG_PCT_RANK',
-#                                     'FG3M_RANK', 'FG3A_RANK', 'FG3_PCT_RANK', 'FTM_RANK', 'FTA_RANK',
-#                                     'FT_PCT_RANK', 'OREB_RANK', 'DREB_RANK', 'REB_RANK', 'AST_RANK',
-#                                     'TOV_RANK', 'STL_RANK', 'BLK_RANK', 'BLKA_RANK', 'PF_RANK', 'PFD_RANK',
-#                                     'PTS_RANK', 'PLUS_MINUS_RANK', 'NBA_FANTASY_PTS_RANK', 'DD2_RANK',
-#                                     'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs']]
-# if (playoffsworking.empty):
-#     playoffsdata = pd.DataFrame()
-#
-# playoffsdata = playoffsdata.append(playoffsworking)
-# playoffsdata = playoffsdata.reset_index()
-#
-# playerdataworking = pd.DataFrame()
-# playerdatatemp = pd.DataFrame()
-#
-# # Read the data from the website into a dataframe
-# for i in range(0, len(playerdatalist)):
-#     playerdatatemp = pd.DataFrame(playerdatalist[i][0])
-#     playerdatatemp['Gamedate'] = playerdatalist[i][1]
-#     playerdatatemp['Quarter'] = playerdatalist[i][2]
-#     playerdataworking = playerdataworking.append(playerdatatemp)
-#
-# playerdataworking['Playoffs'] = 0
-#
-# if not (playerdataworking.empty):
-#     playerdataworking = playerdataworking[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
-#                                      'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
-#                                      'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV',
-#                                      'STL', 'BLK', 'BLKA', 'PF', 'PFD', 'PTS', 'PLUS_MINUS',
-#                                      'NBA_FANTASY_PTS', 'DD2', 'TD3', 'GP_RANK', 'W_RANK', 'L_RANK',
-#                                      'W_PCT_RANK', 'MIN_RANK', 'FGM_RANK', 'FGA_RANK', 'FG_PCT_RANK',
-#                                      'FG3M_RANK', 'FG3A_RANK', 'FG3_PCT_RANK', 'FTM_RANK', 'FTA_RANK',
-#                                      'FT_PCT_RANK', 'OREB_RANK', 'DREB_RANK', 'REB_RANK', 'AST_RANK',
-#                                      'TOV_RANK', 'STL_RANK', 'BLK_RANK', 'BLKA_RANK', 'PF_RANK', 'PFD_RANK',
-#                                      'PTS_RANK', 'PLUS_MINUS_RANK', 'NBA_FANTASY_PTS_RANK', 'DD2_RANK',
-#                                      'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs','Quarter']]
-#
-# if (playerdataworking.empty):
-#     playerdatatworking = pd.DataFrame()
-#
-# playerdata = pd.DataFrame()
-# playerdataworking = playerdataworking.append(playoffsdata)
-# playerdata = playerdata.append(playerdataworking)
-# playerdata.to_csv(directory1+'playerytd_quarterly.csv')
+playerqdata=pd.read_csv(directory1+'playerytd_quarterly.csv')
 
+playerdatalist = []
+playoffslist = []
+
+for period in range(0, 4):
+    for e in range(0, len(datelist)):
+        try:
+            year1 = datelist[e][:4]
+            month1 = datelist[e][5:7]
+            day1 = datelist[e][8:10]
+            a = 'https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom='
+            if datelist[e] in dataytd[0].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2022-23&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[1].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2020-21&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[2].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2019-20&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[3].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2018-19&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[4].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2017-18&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[5].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2016-17&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[6].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2015-16&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[6].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2014-15&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            c = '&DateTo='
+            d = '%2F'
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
+                'x-nba-stats-origin': 'stats'}
+            url = a + month1 + d + day1 + d + year1 + c + month1 + d + day1 + d + year1 + b
+            r = requests.get(url, headers=headers)
+            numrecords = len(r.json()['resultSets'][0]['rowSet'])
+            fields = r.json()['resultSets'][0]['headers']
+            data = pd.DataFrame(index=np.arange(numrecords), columns=fields)
+            for i in range(0, numrecords):
+                records = r.json()['resultSets'][0]['rowSet'][i]
+                for j in range(0, len(records)):
+                    data.iloc[[i], [j]] = records[j]
+            playerdatalist.insert(e, [data, datelist[e],period+1])
+        except:
+            pass
+
+for period in range(0, 4):
+    for e in range(0, len(datelist)):
+        try:
+            year1 = datelist[e][:4]
+            month1 = datelist[e][5:7]
+            day1 = datelist[e][8:10]
+            a = 'https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom='
+            if datelist[e] in dataytd[0].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2022-23&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            if datelist[e] in dataytd[0].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2021-22&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[0].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2020-21&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[1].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2019-20&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[2].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2018-19&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[3].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2017-18&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[4].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2016-17&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[5].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2015-16&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            elif datelist[e] in dataytd[6].tolist():
+                b = '&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=' + str(
+                    period + 1) + '&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=2014-15&SeasonSegment=&SeasonType=Playoffs&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=&Weight='
+            c = '&DateTo='
+            d = '%2F'
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
+                'x-nba-stats-origin': 'stats', 'x-nba-stats-token': 'true', 'Referer': 'https://www.nba.com/'}
+            url = a + month1 + d + day1 + d + year1 + c + month1 + d + day1 + d + year1 + b
+            r = requests.get(url, headers=headers)
+            numrecords = len(r.json()['resultSets'][0]['rowSet'])
+            fields = r.json()['resultSets'][0]['headers']
+            data = pd.DataFrame(index=np.arange(numrecords), columns=fields)
+            for i in range(0, numrecords):
+                records = r.json()['resultSets'][0]['rowSet'][i]
+                for j in range(0, len(records)):
+                    data.iloc[[i], [j]] = records[j]
+            playoffslist.insert(e, [data, datelist[e],period+1])
+        except:
+            pass
+
+playoffsworking = pd.DataFrame()
+playoffstemp = pd.DataFrame()
+
+# Read the data from the website into a dataframe
+for i in range(0, len(playoffslist)):
+    playoffstemp = pd.DataFrame(playoffslist[i][0])
+    playoffstemp['Gamedate'] = playoffslist[i][1]
+    playoffsworking = playoffsworking.append(playoffstemp)
+
+playoffsworking['Playoffs'] = 1
+
+if not (playoffsworking.empty):
+    playoffsdata = playoffsworking[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
+                                    'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
+                                    'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV',
+                                    'STL', 'BLK', 'BLKA', 'PF', 'PFD', 'PTS', 'PLUS_MINUS',
+                                    'NBA_FANTASY_PTS', 'DD2', 'TD3', 'GP_RANK', 'W_RANK', 'L_RANK',
+                                    'W_PCT_RANK', 'MIN_RANK', 'FGM_RANK', 'FGA_RANK', 'FG_PCT_RANK',
+                                    'FG3M_RANK', 'FG3A_RANK', 'FG3_PCT_RANK', 'FTM_RANK', 'FTA_RANK',
+                                    'FT_PCT_RANK', 'OREB_RANK', 'DREB_RANK', 'REB_RANK', 'AST_RANK',
+                                    'TOV_RANK', 'STL_RANK', 'BLK_RANK', 'BLKA_RANK', 'PF_RANK', 'PFD_RANK',
+                                    'PTS_RANK', 'PLUS_MINUS_RANK', 'NBA_FANTASY_PTS_RANK', 'DD2_RANK',
+                                    'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs']]
+if (playoffsworking.empty):
+    playoffsdata = pd.DataFrame()
+
+playoffsdata = playoffsdata.append(playoffsworking)
+playoffsdata = playoffsdata.reset_index()
+
+playerdataworking = pd.DataFrame()
+playerdatatemp = pd.DataFrame()
+
+# Read the data from the website into a dataframe
+for i in range(0, len(playerdatalist)):
+    playerdatatemp = pd.DataFrame(playerdatalist[i][0])
+    playerdatatemp['Gamedate'] = playerdatalist[i][1]
+    playerdatatemp['Quarter'] = playerdatalist[i][2]
+    playerdataworking = playerdataworking.append(playerdatatemp)
+
+playerdataworking['Playoffs'] = 0
+
+if not (playerdataworking.empty):
+    playerdataworking = playerdataworking[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
+                                     'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
+                                     'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV',
+                                     'STL', 'BLK', 'BLKA', 'PF', 'PFD', 'PTS', 'PLUS_MINUS',
+                                     'NBA_FANTASY_PTS', 'DD2', 'TD3', 'GP_RANK', 'W_RANK', 'L_RANK',
+                                     'W_PCT_RANK', 'MIN_RANK', 'FGM_RANK', 'FGA_RANK', 'FG_PCT_RANK',
+                                     'FG3M_RANK', 'FG3A_RANK', 'FG3_PCT_RANK', 'FTM_RANK', 'FTA_RANK',
+                                     'FT_PCT_RANK', 'OREB_RANK', 'DREB_RANK', 'REB_RANK', 'AST_RANK',
+                                     'TOV_RANK', 'STL_RANK', 'BLK_RANK', 'BLKA_RANK', 'PF_RANK', 'PFD_RANK',
+                                     'PTS_RANK', 'PLUS_MINUS_RANK', 'NBA_FANTASY_PTS_RANK', 'DD2_RANK',
+                                     'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs','Quarter']]
+
+if (playerdataworking.empty):
+    playerdatatworking = pd.DataFrame()
+
+playerdata = pd.DataFrame()
+playerdataworking = playerdataworking.append(playoffsdata).reset_index()
+playerdata = playerdata.append(playerdataworking.drop('level_0',axis=1)).reset_index()
+playerqdata = playerqdata.append(playerdata)
+playerqdata=playerqdata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
+                                     'W', 'L', 'W_PCT', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A',
+                                     'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV',
+                                     'STL', 'BLK', 'BLKA', 'PF', 'PFD', 'PTS', 'PLUS_MINUS',
+                                     'NBA_FANTASY_PTS', 'DD2', 'TD3', 'GP_RANK', 'W_RANK', 'L_RANK',
+                                     'W_PCT_RANK', 'MIN_RANK', 'FGM_RANK', 'FGA_RANK', 'FG_PCT_RANK',
+                                     'FG3M_RANK', 'FG3A_RANK', 'FG3_PCT_RANK', 'FTM_RANK', 'FTA_RANK',
+                                     'FT_PCT_RANK', 'OREB_RANK', 'DREB_RANK', 'REB_RANK', 'AST_RANK',
+                                     'TOV_RANK', 'STL_RANK', 'BLK_RANK', 'BLKA_RANK', 'PF_RANK', 'PFD_RANK',
+                                     'PTS_RANK', 'PLUS_MINUS_RANK', 'NBA_FANTASY_PTS_RANK', 'DD2_RANK',
+                                     'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs','Quarter']]
+playerqdata=playerqdata.reset_index().drop('index',axis=1).drop('level_0',axis=1)
+
+playerdata.to_csv(directory1+'playerytd_quarterly.csv')
 playerqdata=pd.read_csv(directory1+'playerytd_quarterly.csv')
 
 playerqdata = playerqdata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
@@ -1308,7 +1327,7 @@ for gameid in livematchups:
          'FG3M': 'sum', 'FG3_PCT': 'mean', 'PF': 'sum', 'PTS': 'sum', 'TOV': 'sum', '+/-': 'sum', '>40': 'sum',
          '>30': 'sum', '>20': 'sum', '>15': 'sum', '>10': 'sum', '>5': 'sum'})
     gamestats = gamestats.append(playerstats)
-gamestats.reset_index()
+gamestats=gamestats.reset_index()
 
 gamestats1 = gamestats[(gamestats['Time']=='End Q1')]
 gamestats2 = gamestats[(gamestats['Time']=='Half')]
@@ -1322,8 +1341,8 @@ matchupslive3=list(gamestats3['Matchup'].unique())
 for match in matchupslive2:
     testing = pd.DataFrame()
     str(datetime.datetime.today().date())
-    home = gamestats2[(gamestats2['H/A']=='Home')&(gamestats2['Matchup']==match)][j]
-    opponent = gamestats2[(gamestats2['H/A']=='Away')&(gamestats2['Matchup']==match)][j]
+    home = gamestats2[(gamestats2['H/A']=='Home')&(gamestats2['Matchup']==match)].reset_index()['Team'][0]
+    opponent = gamestats2[(gamestats2['H/A']=='Away')&(gamestats2['Matchup']==match)].reset_index()['Team'][0]
     date_format = "%Y-%m-%d"
     teamstanding1 = standing[(standing['Index'] == home) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
@@ -1395,8 +1414,10 @@ for match in matchupslive2:
     testinghome=gamestats2[gamestats2['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD'})
     testingaway = gamestats2[gamestats2['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD'})
 
-    q2ytdmeanhome=q2ytdmean[q2ytdmean['Team']==home]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
-    q2ytdmeanaway=q2ytdmean[q2ytdmean['Team']==opponent]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
+    maxhomedate = max(q2ytdmean[(q2ytdmean['Team'] == home)]['Gamedate'])
+    maxawaydate = max(q2ytdmean[(q2ytdmean['Team'] == opponent)]['Gamedate'])
+    q2ytdmeanhome=q2ytdmean[(q2ytdmean['Team']==home)&(q2ytdmean['Gamedate']==maxhomedate)]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
+    q2ytdmeanaway=q2ytdmean[(q2ytdmean['Team']==opponent)&(q2ytdmean['Gamedate']==maxawaydate)]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
 
     testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
     testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
@@ -1404,14 +1425,14 @@ for match in matchupslive2:
     testing = pd.concat([testing, q2ytdmeanaway], axis=1).drop('index', axis=1)
     testing['Playoffs']=0
     testing['HomeTeam']=home
-    completetesting = completetesting.append(testing)
+    completetesting2 = completetesting2.append(testing)
 
 #live data forq1
 for match in matchupslive1:
     testing = pd.DataFrame()
     str(datetime.datetime.today().date())
-    home = gamestats1[(gamestats1['H/A']=='Home')&(gamestats1['Matchup']==match)][j]
-    opponent = gamestats1[(gamestats1['H/A']=='Away')&(gamestats1['Matchup']==match)][j]
+    home = gamestats1[(gamestats1['H/A']=='Home')&(gamestats1['Matchup']==match)].reset_index()['Team'][0]
+    opponent = gamestats1[(gamestats1['H/A']=='Away')&(gamestats1['Matchup']==match)].reset_index()['Team'][0]
     date_format = "%Y-%m-%d"
     teamstanding1 = standing[(standing['Index'] == home) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
@@ -1483,8 +1504,10 @@ for match in matchupslive1:
     testinghome=gamestats1[gamestats1['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD'})
     testingaway = gamestats1[gamestats1['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD'})
 
-    q1ytdmeanhome=q1ytdmean[q1ytdmean['Team']==home]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
-    q1ytdmeanaway=q1ytdmean[q1ytdmean['Team']==opponent]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
+    maxhomedate = max(q1ytdmean[(q1ytdmean['Team'] == home)]['Gamedate'])
+    maxawaydate = max(q1ytdmean[(q1ytdmean['Team'] == opponent)]['Gamedate'])
+    q1ytdmeanhome=q1ytdmean[(q1ytdmean['Team']==home)&(q1ytdmean['Gamedate']==maxhomedate)]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
+    q1ytdmeanaway=q1ytdmean[(q1ytdmean['Team']==opponent)&(q1ytdmean['Gamedate']==maxawaydate)]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
 
     testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
     testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
@@ -1498,8 +1521,8 @@ for match in matchupslive1:
 for match in matchupslive3:
     testing = pd.DataFrame()
     str(datetime.datetime.today().date())
-    home = gamestats3[(gamestats3['H/A']=='Home')&(gamestats3['Matchup']==match)][j]
-    opponent = gamestats3[(gamestats3['H/A']=='Away')&(gamestats3['Matchup']==match)][j]
+    home = gamestats3[(gamestats3['H/A']=='Home')&(gamestats3['Matchup']==match)].reset_index()['Team'][0]
+    opponent = gamestats3[(gamestats3['H/A']=='Away')&(gamestats3['Matchup']==match)].reset_index()['Team'][0]
     date_format = "%Y-%m-%d"
     teamstanding1 = standing[(standing['Index'] == home) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
@@ -1570,14 +1593,18 @@ for match in matchupslive3:
 
     testinghome=gamestats3[gamestats3['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD'})
     testingaway = gamestats3[gamestats3['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD'})
-
-    q4ytdmeanhome=q4ytdmean[q4ytdmean['Team']==home]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
-    q4ytdmeanaway=q4ytdmean[q4ytdmean['Team']==opponent]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
+    maxhomedate = max(q4ytdmean[(q4ytdmean['Team'] == home)]['Gamedate'])
+    maxawaydate = max(q4ytdmean[(q4ytdmean['Team'] == opponent)]['Gamedate'])
+    q4ytdmeanhome=q4ytdmean[(q4ytdmean['Team']==home)&(q4ytdmean['Gamedate']==maxhomedate)]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
+    q4ytdmeanaway=q4ytdmean[(q4ytdmean['Team']==opponent)&(q4ytdmean['Gamedate']==maxawaydate)]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
 
     testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
     testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
+
     testing = pd.concat([testing, q4ytdmeanhome], axis=1).drop('index', axis=1)
+
     testing = pd.concat([testing, q4ytdmeanaway], axis=1).drop('index', axis=1)
+
     testing['Playoffs']=0
     testing['HomeTeam']=home
     completetesting3 = completetesting3.append(testing)
@@ -1639,7 +1666,7 @@ completetesting3=completetesting3[['HFTA', 'HFG3_PCT', 'HPTS', 'HSTL', 'HREB', '
 
 
 
-completetesting=completetesting.reset_index().drop('index',axis=1)
-completetesting=completetesting.reset_index().drop('index',axis=1)
-
+completetesting=completetesting1.reset_index().drop('index',axis=1)
+completetesting=completetesting2.reset_index().drop('index',axis=1)
+completetesting=completetesting3.reset_index().drop('index',axis=1)
 
