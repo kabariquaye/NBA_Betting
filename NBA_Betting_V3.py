@@ -775,9 +775,10 @@ playerqdata=playerqdata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATI
                                      'TOV_RANK', 'STL_RANK', 'BLK_RANK', 'BLKA_RANK', 'PF_RANK', 'PFD_RANK',
                                      'PTS_RANK', 'PLUS_MINUS_RANK', 'NBA_FANTASY_PTS_RANK', 'DD2_RANK',
                                      'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs','Quarter']]
-playerqdata=playerqdata.reset_index().drop('index',axis=1).drop('level_0',axis=1)
+playerqdata=playerqdata.reset_index().drop('index',axis=1)
 
 playerdata.to_csv(directory1+'playerytd_quarterly.csv')
+
 playerqdata=pd.read_csv(directory1+'playerytd_quarterly.csv')
 
 playerqdata = playerqdata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATION', 'AGE', 'GP',
@@ -859,11 +860,14 @@ for r in range(1,5):
     playerqdata_update=playerqdata_update.append(playerqtemp)
 
 playerqdata=playerqdata_update
+playerqdata=playerqdata.reset_index().drop('index',axis=1)
+
 
 quarterdata['ID'] = quarterdata['TEAM_ABBREVIATION'] + quarterdata['Gamedate'] + quarterdata['Quarter'].astype(str)
 
 quarterdata = quarterdata.drop('key_0', axis=1)
 quarterdata=pd.merge(quarterdata,playerqdata,left_on=quarterdata['ID'],right_on=playerqdata['PointsID'],how='left')
+
 quarterdata=quarterdata.dropna()
 
 qw = quarterdata
@@ -875,7 +879,7 @@ qw4_old=pd.read_csv(directory1+'qw4.csv')
 qw1p_old=pd.read_csv(directory1+'qw1p.csv')
 qw2p_old=pd.read_csv(directory1+'qw2p.csv')
 
-captureddates=pd.DataFrame(qw['Gamedate'].unique())
+captureddates=pd.DataFrame(qw1p_old['ID'].str[3:13].unique())
 qw = qw[qw['Gamedate']>max(captureddates[0].dropna().astype(str))]
 qw = qw.dropna()
 qw['ID'] = qw['TEAM_ABBREVIATION'] + qw['Gamedate']
@@ -1215,32 +1219,22 @@ schedule['TotalScore'] = schedule['home_team_score'] + schedule['away_team_score
 opponent = schedule.filter(['home_teamID', 'Season Year', 'TotalScore', 'away_teamID'])
 
 # 2023 Schedule
-Schedule2022 = pd.DataFrame(client.season_schedule(season_end_year=2022))
-Schedule2022['Season Year'] = '2022'
-Schedule2022['start_time'] = (Schedule2022['start_time'] - timedelta(hours=12)).apply(lambda x: x.strftime('%Y-%m-%d'))
-Schedule2022['away_team'] = Schedule2022['away_team'].astype('S')
-awayteams=Schedule2022['away_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
-Schedule2022['away_team'] = [x[1] for x in awayteams]
-Schedule2022['home_team'] = Schedule2022['home_team'].astype('S')
-hometeams = Schedule2022['home_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
-Schedule2022['home_team'] = [x[1] for x in hometeams]
-Schedule2022 = pd.merge(Schedule2022, teammapping, left_on=Schedule2022['home_team'], right_on=teammapping['Team_Names'],
+Schedule2023 = pd.DataFrame(client.season_schedule(season_end_year=2023))
+Schedule2023['Season Year'] = '2023'
+Schedule2023['start_time'] = (Schedule2023['start_time'] - timedelta(hours=12)).apply(lambda x: x.strftime('%Y-%m-%d'))
+Schedule2023['away_team'] = Schedule2023['away_team'].astype('S')
+awayteams=Schedule2023['away_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
+Schedule2023['away_team'] = [x[1] for x in awayteams]
+Schedule2023['home_team'] = Schedule2023['home_team'].astype('S')
+hometeams = Schedule2023['home_team'].apply(lambda x: x.decode("utf-8")).str.split('Team.').tolist()
+Schedule2023['home_team'] = [x[1] for x in hometeams]
+Schedule2023 = pd.merge(Schedule2023, teammapping, left_on=Schedule2023['home_team'], right_on=teammapping['Team_Names'],
                     how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'HOME_TEAM_ABBREVIATION'})
-Schedule2022 = Schedule2022.drop('key_0', axis=1)
-Schedule2022 = pd.merge(Schedule2022, teammapping, left_on=Schedule2022['away_team'], right_on=teammapping['Team_Names'],
+Schedule2023 = Schedule2023.drop('key_0', axis=1)
+Schedule2023 = pd.merge(Schedule2023, teammapping, left_on=Schedule2023['away_team'], right_on=teammapping['Team_Names'],
                     how='left').drop('Team_Names', axis=1).rename(columns={'Mapping': 'AWAY_TEAM_ABBREVIATION'})
-gamestoday=Schedule2022[Schedule2022['start_time']==str(datetime.datetime.today().date())]
+gamestoday=Schedule2023[Schedule2023['start_time']==str(datetime.datetime.today().date())]
 gamestoday=gamestoday.reset_index().drop('index',axis=1)
-
-completetesting1 = pd.DataFrame()
-predicted=[]
-
-completetesting2 = pd.DataFrame()
-predicted=[]
-
-completetesting3 = pd.DataFrame()
-predicted=[]
-
 
 today = datetime.datetime.today().strftime('%Y-%m-%d')
 
@@ -1333,9 +1327,23 @@ gamestats1 = gamestats[(gamestats['Time']=='End Q1')]
 gamestats2 = gamestats[(gamestats['Time']=='Half')]
 gamestats3 = gamestats[(gamestats['Time']=='End Q3')]
 
+#Test
+gamestats2 = gamestats[(gamestats['Time']=='Final')]
+
 matchupslive1=list(gamestats1['Matchup'].unique())
 matchupslive2=list(gamestats2['Matchup'].unique())
 matchupslive3=list(gamestats3['Matchup'].unique())
+
+
+completetesting1 = pd.DataFrame()
+predicted=[]
+
+completetesting2 = pd.DataFrame()
+predicted=[]
+
+completetesting3 = pd.DataFrame()
+predicted=[]
+
 
 #live data for q2
 for match in matchupslive2:
@@ -1344,6 +1352,7 @@ for match in matchupslive2:
     home = gamestats2[(gamestats2['H/A']=='Home')&(gamestats2['Matchup']==match)].reset_index()['Team'][0]
     opponent = gamestats2[(gamestats2['H/A']=='Away')&(gamestats2['Matchup']==match)].reset_index()['Team'][0]
     date_format = "%Y-%m-%d"
+    standing=standing.drop_duplicates()
     teamstanding1 = standing[(standing['Index'] == home) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
     teamstanding2 = standing[(standing['Index'] == opponent) & (standing['Season Year'] == currentyear)][
@@ -1411,29 +1420,33 @@ for match in matchupslive2:
         columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
         ['start_time'], ascending=False)['team_score'].dropna().iloc[0]
 
-    testinghome=gamestats2[gamestats2['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD'})
-    testingaway = gamestats2[gamestats2['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD'})
+    testinghome=gamestats2[gamestats2['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD','>40':'H>40', '>30':'H>30', '>20':'H>20', '>15':'H>15', '>10':'H>10','>5':'H>5'}).reset_index()
+    testingaway = gamestats2[gamestats2['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD','>40': 'A>40', '>30': 'A>30', '>20': 'A>20', '>15': 'A>15', '>10': 'A>10', '>5': 'A>5'}).reset_index()
 
-    maxhomedate = max(q2ytdmean[(q2ytdmean['Team'] == home)]['Gamedate'])
-    maxawaydate = max(q2ytdmean[(q2ytdmean['Team'] == opponent)]['Gamedate'])
-    q2ytdmeanhome=q2ytdmean[(q2ytdmean['Team']==home)&(q2ytdmean['Gamedate']==maxhomedate)]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
-    q2ytdmeanaway=q2ytdmean[(q2ytdmean['Team']==opponent)&(q2ytdmean['Gamedate']==maxawaydate)]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
+    maxhomedate = max(q2ytdmean[(q2ytdmean['HOME_TEAM_ABBREVIATION'] == home)]['PID'].str[3:17])
+    maxawaydate = max(q2ytdmean[(q2ytdmean['HOME_TEAM_ABBREVIATION'] == opponent)]['PID'].str[3:17])
 
-    testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
-    testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
-    testing = pd.concat([testing, q2ytdmeanhome], axis=1).drop('index', axis=1)
-    testing = pd.concat([testing, q2ytdmeanaway], axis=1).drop('index', axis=1)
+    q2ytdmeanhome = q2ytdmean.add_prefix('H')
+    q2ytdmeanaway = q2ytdmean.add_prefix('A')
+    q2ytdmeanhome=q2ytdmeanhome[(q2ytdmeanhome['HHOME_TEAM_ABBREVIATION']==home)&(q2ytdmeanhome['HPID'].str[3:17]==maxhomedate)][['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']].reset_index()
+    q2ytdmeanaway=q2ytdmeanaway[(q2ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q2ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APPFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
+
+    testing = pd.concat([testing, testingaway], axis=1)
+    testing = pd.concat([testing, testinghome], axis=1)
+    testing = pd.concat([testing, q2ytdmeanhome], axis=1)
+    testing = pd.concat([testing, q2ytdmeanaway], axis=1)
     testing['Playoffs']=0
     testing['HomeTeam']=home
     completetesting2 = completetesting2.append(testing)
 
-#live data forq1
+#live data for q1
 for match in matchupslive1:
     testing = pd.DataFrame()
     str(datetime.datetime.today().date())
     home = gamestats1[(gamestats1['H/A']=='Home')&(gamestats1['Matchup']==match)].reset_index()['Team'][0]
     opponent = gamestats1[(gamestats1['H/A']=='Away')&(gamestats1['Matchup']==match)].reset_index()['Team'][0]
     date_format = "%Y-%m-%d"
+    standing=standing.drop_duplicates()
     teamstanding1 = standing[(standing['Index'] == home) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
     teamstanding2 = standing[(standing['Index'] == opponent) & (standing['Season Year'] == currentyear)][
@@ -1501,29 +1514,33 @@ for match in matchupslive1:
         columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
         ['start_time'], ascending=False)['team_score'].dropna().iloc[0]
 
-    testinghome=gamestats1[gamestats1['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD'})
-    testingaway = gamestats1[gamestats1['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD'})
+    testinghome=gamestats1[gamestats1['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD','>40':'H>40', '>30':'H>30', '>20':'H>20', '>15':'H>15', '>10':'H>10','>5':'H>5'}).reset_index()
+    testingaway = gamestats1[gamestats1['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD','>40': 'A>40', '>30': 'A>30', '>20': 'A>20', '>15': 'A>15', '>10': 'A>10', '>5': 'A>5'}).reset_index()
 
-    maxhomedate = max(q1ytdmean[(q1ytdmean['Team'] == home)]['Gamedate'])
-    maxawaydate = max(q1ytdmean[(q1ytdmean['Team'] == opponent)]['Gamedate'])
-    q1ytdmeanhome=q1ytdmean[(q1ytdmean['Team']==home)&(q1ytdmean['Gamedate']==maxhomedate)]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
-    q1ytdmeanaway=q1ytdmean[(q1ytdmean['Team']==opponent)&(q1ytdmean['Gamedate']==maxawaydate)]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
+    maxhomedate = max(q1ytdmean[(q1ytdmean['HOME_TEAM_ABBREVIATION'] == home)]['PID'].str[3:17])
+    maxawaydate = max(q1ytdmean[(q1ytdmean['HOME_TEAM_ABBREVIATION'] == opponent)]['PID'].str[3:17])
 
-    testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
-    testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
-    testing = pd.concat([testing, q1ytdmeanhome], axis=1).drop('index', axis=1)
-    testing = pd.concat([testing, q1ytdmeanaway], axis=1).drop('index', axis=1)
+    q1ytdmeanhome = q1ytdmean.add_prefix('H')
+    q1ytdmeanaway = q1ytdmean.add_prefix('A')
+    q1ytdmeanhome=q1ytdmeanhome[(q1ytdmeanhome['HHOME_TEAM_ABBREVIATION']==home)&(q1ytdmeanhome['HPID'].str[3:17]==maxhomedate)][['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']].reset_index()
+    q1ytdmeanaway=q1ytdmeanaway[(q1ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q1ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APPFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
+
+    testing = pd.concat([testing, testingaway], axis=1)
+    testing = pd.concat([testing, testinghome], axis=1)
+    testing = pd.concat([testing, q1ytdmeanhome], axis=1)
+    testing = pd.concat([testing, q1ytdmeanaway], axis=1)
     testing['Playoffs']=0
     testing['HomeTeam']=home
     completetesting1 = completetesting1.append(testing)
 
-#live data for q3
-for match in matchupslive3:
+#live data for q1
+for match in matchupslive1:
     testing = pd.DataFrame()
     str(datetime.datetime.today().date())
     home = gamestats3[(gamestats3['H/A']=='Home')&(gamestats3['Matchup']==match)].reset_index()['Team'][0]
-    opponent = gamestats3[(gamestats3['H/A']=='Away')&(gamestats3['Matchup']==match)].reset_index()['Team'][0]
+    opponent = gamestats3[(gamestats1['H/A']=='Away')&(gamestats3['Matchup']==match)].reset_index()['Team'][0]
     date_format = "%Y-%m-%d"
+    standing=standing.drop_duplicates()
     teamstanding1 = standing[(standing['Index'] == home) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
     teamstanding2 = standing[(standing['Index'] == opponent) & (standing['Season Year'] == currentyear)][
@@ -1591,20 +1608,21 @@ for match in matchupslive3:
         columns={'AWAY_TEAM_ABBREVIATION': 'TEAM_ABBREVIATION', 'away_team_score': 'team_score'})).sort_values(
         ['start_time'], ascending=False)['team_score'].dropna().iloc[0]
 
-    testinghome=gamestats3[gamestats3['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD'})
-    testingaway = gamestats3[gamestats3['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD'})
-    maxhomedate = max(q4ytdmean[(q4ytdmean['Team'] == home)]['Gamedate'])
-    maxawaydate = max(q4ytdmean[(q4ytdmean['Team'] == opponent)]['Gamedate'])
-    q4ytdmeanhome=q4ytdmean[(q4ytdmean['Team']==home)&(q4ytdmean['Gamedate']==maxhomedate)]['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']
-    q4ytdmeanaway=q4ytdmean[(q4ytdmean['Team']==opponent)&(q4ytdmean['Gamedate']==maxawaydate)]['APFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']
+    testinghome=gamestats3[gamestats3['Team']==home].rename(columns={'FTA':'HFTA', 'FG3_PCT':'HFG3_PCT','PTS':'HPTS','STL':'HSTL','REB':'HREB','FGM':'HFGM','FT_PCT':'HFT_PCT','FGA':'HFGA','FG3A':'HFG3A', 'FG3M':'HFG3M', 'PF':'HPF', 'FG_PCT':'HFG_PCT', 'AST':'HAST', 'OREB':'HOREB','BLK':'HBLK', 'DREB':'HDREB','TOV':'HTOV', 'FTM':'HFTM','BLKA':'HBLKA', 'PFD':'HPFD','>40':'H>40', '>30':'H>30', '>20':'H>20', '>15':'H>15', '>10':'H>10','>5':'H>5'}).reset_index()
+    testingaway = gamestats3[gamestats3['Team'] == opponent].rename(columns={'FTA':'AFTA', 'FG3_PCT':'AFG3_PCT','PTS':'APTS','STL':'ASTL','REB':'AREB','FGM':'AFGM','FT_PCT':'AFT_PCT','FGA':'AFGA','FG3A':'AFG3A', 'FG3M':'AFG3M', 'PF':'APF', 'FG_PCT':'AFG_PCT', 'AST':'AAST', 'OREB':'AOREB','BLK':'ABLK', 'DREB':'ADREB','TOV':'ATOV', 'FTM':'AFTM','BLKA':'ABLKA', 'PFD':'APFD','>40': 'A>40', '>30': 'A>30', '>20': 'A>20', '>15': 'A>15', '>10': 'A>10', '>5': 'A>5'}).reset_index()
 
-    testing = pd.concat([testing, testingaway], axis=1).drop('index', axis=1)
-    testing = pd.concat([testing, testinghome], axis=1).drop('index', axis=1)
+    maxhomedate = max(q4ytdmean[(q4ytdmean['HOME_TEAM_ABBREVIATION'] == home)]['PID'].str[3:17])
+    maxawaydate = max(q4ytdmean[(q4ytdmean['HOME_TEAM_ABBREVIATION'] == opponent)]['PID'].str[3:17])
 
-    testing = pd.concat([testing, q4ytdmeanhome], axis=1).drop('index', axis=1)
+    q4ytdmeanhome = q4ytdmean.add_prefix('H')
+    q4ytdmeanaway = q4ytdmean.add_prefix('A')
+    q4ytdmeanhome=q4ytdmeanhome[(q4ytdmeanhome['HHOME_TEAM_ABBREVIATION']==home)&(q4ytdmeanhome['HPID'].str[3:17]==maxhomedate)][['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']].reset_index()
+    q4ytdmeanaway=q4ytdmeanaway[(q4ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q4ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APPFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
 
-    testing = pd.concat([testing, q4ytdmeanaway], axis=1).drop('index', axis=1)
-
+    testing = pd.concat([testing, testingaway], axis=1)
+    testing = pd.concat([testing, testinghome], axis=1)
+    testing = pd.concat([testing, q4ytdmeanhome], axis=1)
+    testing = pd.concat([testing, q4ytdmeanaway], axis=1)
     testing['Playoffs']=0
     testing['HomeTeam']=home
     completetesting3 = completetesting3.append(testing)
