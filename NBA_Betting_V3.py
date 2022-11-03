@@ -597,7 +597,12 @@ nbaschedule['ScheduleID2'] = nbaschedule['schedule'] + nbaschedule['Team']
 
 nbaschedule = nbaschedule[nbaschedule['schedule'].isin(quarterdata['Gamedate'].unique())]
 
-playerqdata=pd.read_csv(directory1+'playerytd_quarterly.csv')
+playerqdata=pd.read_csv(directory1+'playerytd_quarterly2.csv')
+
+captureddates=pd.DataFrame(playerqdata['Gamedate'].unique())
+
+datelist=[x for x in dates[0].tolist() if x not in captureddates[0].tolist()]
+datelist = [x for x in datelist if x > max(captureddates[0])]
 
 playerdatalist = []
 playoffslist = []
@@ -777,7 +782,7 @@ playerqdata=playerqdata[['PLAYER_ID', 'PLAYER_NAME', 'TEAM_ID', 'TEAM_ABBREVIATI
                                      'TD3_RANK', 'CFID', 'CFPARAMS', 'Gamedate', 'Playoffs','Quarter']]
 playerqdata=playerqdata.reset_index().drop('index',axis=1)
 
-playerdata.to_csv(directory1+'playerytd_quarterly.csv')
+playerqdata.to_csv(directory1+'playerytd_quarterly.csv')
 
 playerqdata=pd.read_csv(directory1+'playerytd_quarterly.csv')
 
@@ -1064,10 +1069,10 @@ qw1p=pd.merge(qw1p,qaddons,left_on=qw1p['PID'],right_on=qaddons['ID'],how='left'
 q4data=qw4
 q4data['HOME_TEAM_ABBREVIATION']=q4data['PID'].str[:3]
 q4 = []
-tempscoring=pd.DataFrame()
 for s in list(q4data['Season Year'].unique()):
+    tempscoring = pd.DataFrame()
     for i in list(q4data['HOME_TEAM_ABBREVIATION'].unique()):
-        tempscoring = q4data[(q4data['HOME_TEAM_ABBREVIATION'] == i) & ((q4data['Season Year'] == s))].dropna().reset_index()
+        tempscoring = q4data[(q4data['HOME_TEAM_ABBREVIATION'] == i) & ((q4data['Season Year'] == s))].reset_index()
         tempscoring.sort_values('Gamedate')
         for j in range(0, len(tempscoring)):
             if j>0:
@@ -1090,8 +1095,9 @@ q2data['HOME_TEAM_ABBREVIATION']=q2data['PID'].str[:3]
 q2 = []
 tempscoring=pd.DataFrame()
 for s in list(q2data['Season Year'].unique()):
+    tempscoring = pd.DataFrame()
     for i in list(q2data['HOME_TEAM_ABBREVIATION'].unique()):
-        tempscoring = q2data[(q2data['HOME_TEAM_ABBREVIATION'] == i) & ((q2data['Season Year'] == s))].dropna().reset_index()
+        tempscoring = q2data[(q2data['HOME_TEAM_ABBREVIATION'] == i) & ((q2data['Season Year'] == s))].reset_index()
         tempscoring.sort_values('Gamedate')
         for j in range(0, len(tempscoring)):
             if j>0:
@@ -1114,8 +1120,9 @@ q1data['HOME_TEAM_ABBREVIATION']=q1data['PID'].str[:3]
 q1 = []
 tempscoring=pd.DataFrame()
 for s in list(q1data['Season Year'].unique()):
+    tempscoring = pd.DataFrame()
     for i in list(q1data['HOME_TEAM_ABBREVIATION'].unique()):
-        tempscoring = q1data[(q1data['HOME_TEAM_ABBREVIATION'] == i) & ((q1data['Season Year'] == s))].dropna().reset_index()
+        tempscoring = q1data[(q1data['HOME_TEAM_ABBREVIATION'] == i) & ((q1data['Season Year'] == s))].reset_index()
         tempscoring.sort_values('Gamedate')
         for j in range(0, len(tempscoring)):
             if j>0:
@@ -1236,6 +1243,26 @@ Schedule2023 = pd.merge(Schedule2023, teammapping, left_on=Schedule2023['away_te
 gamestoday=Schedule2023[Schedule2023['start_time']==str(datetime.datetime.today().date())]
 gamestoday=gamestoday.reset_index().drop('index',axis=1)
 
+modelsonlyq2 = []
+with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/modelsQ2kq.pckl", "rb") as f:
+    while True:
+        try:
+            modelsonlyq2.append(pickle.load(f))
+        except EOFError:
+            break
+
+modelsq2 = [(modelsonlyq2, item) for modelsonlyq2, item in enumerate(modelsonlyq2, start=190)]
+
+modelsonlyq3 = []
+with open("/Users/kabariquaye/PycharmProjects/pythonProject1/venv/data/modelsQ3kq.pckl", "rb") as f:
+    while True:
+        try:
+            modelsonlyq2.append(pickle.load(f))
+        except EOFError:
+            break
+
+modelsq3 = [(modelsonlyq3, item) for modelsonlyq3, item in enumerate(modelsonlyq3, start=190)]
+
 today = datetime.datetime.today().strftime('%Y-%m-%d')
 
 headers = {
@@ -1300,7 +1327,7 @@ for gameid in livematchups:
                      'freeThrowsMade': 'FTM', 'freeThrowsPercentage': 'FT_PCT', 'reboundsTotal': 'REB',
                      'reboundsDefensive': 'DREB', 'reboundsOffensive': 'OREB', 'steals': 'STL',
                      'threePointersAttempted': 'FG3A', 'threePointersMade': 'FG3M',
-                     'threePointersPercentage': 'FG3_PCT', 'foulsPersonal': 'PF', 'points': 'PTS',
+                     'threePointersPercentage': 'FG3_PCT','foulsDrawn':'PFD', 'foulsPersonal': 'PF', 'points': 'PTS',
                      'turnovers': 'TOV', 'plusMinusPoints': '+/-'})
         playerstatstemp['>40'] = playerstatstemp['PTS'] > 40
         playerstatstemp['>40'] = (np.where(playerstatstemp['>40'] == True, 1, 0))
@@ -1318,7 +1345,7 @@ for gameid in livematchups:
     playerstats = playerstatstemp2.groupby(['H/A', 'Team', 'Time', 'Date','Matchup']).agg(
         {'AST': 'sum', 'BLK': 'sum', 'BLKA': 'sum', 'FGA': 'sum', 'FGM': 'sum', 'FG_PCT': 'mean', 'FTA': 'sum',
          'FTM': 'sum', 'FT_PCT': 'mean', 'REB': 'sum', 'DREB': 'sum', 'OREB': 'sum', 'STL': 'sum', 'FG3A': 'sum',
-         'FG3M': 'sum', 'FG3_PCT': 'mean', 'PF': 'sum', 'PTS': 'sum', 'TOV': 'sum', '+/-': 'sum', '>40': 'sum',
+         'FG3M': 'sum', 'FG3_PCT': 'mean','PFD': 'sum', 'PF': 'sum', 'PTS': 'sum', 'TOV': 'sum', '+/-': 'sum', '>40': 'sum',
          '>30': 'sum', '>20': 'sum', '>15': 'sum', '>10': 'sum', '>5': 'sum'})
     gamestats = gamestats.append(playerstats)
 gamestats=gamestats.reset_index()
@@ -1357,6 +1384,8 @@ for match in matchupslive2:
         'Team Rank'].reset_index()
     teamstanding2 = standing[(standing['Index'] == opponent) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
+    testing['HTeam Rank'] = teamstanding1['Team Rank']
+    testing['ATeam Rank'] = teamstanding2['Team Rank']
     testing = pd.concat([testing, teamstanding2], axis=1).drop('index', axis=1)
     testing = testing.rename(columns={'Team Rank': 'Opponent Rank'})
     testing = pd.concat([testing, teamstanding1], axis=1).drop('index', axis=1)
@@ -1429,7 +1458,7 @@ for match in matchupslive2:
     q2ytdmeanhome = q2ytdmean.add_prefix('H')
     q2ytdmeanaway = q2ytdmean.add_prefix('A')
     q2ytdmeanhome=q2ytdmeanhome[(q2ytdmeanhome['HHOME_TEAM_ABBREVIATION']==home)&(q2ytdmeanhome['HPID'].str[3:17]==maxhomedate)][['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']].reset_index()
-    q2ytdmeanaway=q2ytdmeanaway[(q2ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q2ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APPFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
+    q2ytdmeanaway=q2ytdmeanaway[(q2ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q2ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
 
     testing = pd.concat([testing, testingaway], axis=1)
     testing = pd.concat([testing, testinghome], axis=1)
@@ -1451,6 +1480,8 @@ for match in matchupslive1:
         'Team Rank'].reset_index()
     teamstanding2 = standing[(standing['Index'] == opponent) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
+    testing['HTeam Rank'] = teamstanding1['Team Rank']
+    testing['ATeam Rank'] = teamstanding2['Team Rank']
     testing = pd.concat([testing, teamstanding2], axis=1).drop('index', axis=1)
     testing = testing.rename(columns={'Team Rank': 'Opponent Rank'})
     testing = pd.concat([testing, teamstanding1], axis=1).drop('index', axis=1)
@@ -1523,7 +1554,7 @@ for match in matchupslive1:
     q1ytdmeanhome = q1ytdmean.add_prefix('H')
     q1ytdmeanaway = q1ytdmean.add_prefix('A')
     q1ytdmeanhome=q1ytdmeanhome[(q1ytdmeanhome['HHOME_TEAM_ABBREVIATION']==home)&(q1ytdmeanhome['HPID'].str[3:17]==maxhomedate)][['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']].reset_index()
-    q1ytdmeanaway=q1ytdmeanaway[(q1ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q1ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APPFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
+    q1ytdmeanaway=q1ytdmeanaway[(q1ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q1ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
 
     testing = pd.concat([testing, testingaway], axis=1)
     testing = pd.concat([testing, testinghome], axis=1)
@@ -1533,7 +1564,7 @@ for match in matchupslive1:
     testing['HomeTeam']=home
     completetesting1 = completetesting1.append(testing)
 
-#live data for q1
+#live data for q3
 for match in matchupslive1:
     testing = pd.DataFrame()
     str(datetime.datetime.today().date())
@@ -1545,6 +1576,8 @@ for match in matchupslive1:
         'Team Rank'].reset_index()
     teamstanding2 = standing[(standing['Index'] == opponent) & (standing['Season Year'] == currentyear)][
         'Team Rank'].reset_index()
+    testing['HTeam Rank'] = teamstanding1['Team Rank']
+    testing['ATeam Rank'] = teamstanding2['Team Rank']
     testing = pd.concat([testing, teamstanding2], axis=1).drop('index', axis=1)
     testing = testing.rename(columns={'Team Rank': 'Opponent Rank'})
     testing = pd.concat([testing, teamstanding1], axis=1).drop('index', axis=1)
@@ -1617,7 +1650,7 @@ for match in matchupslive1:
     q4ytdmeanhome = q4ytdmean.add_prefix('H')
     q4ytdmeanaway = q4ytdmean.add_prefix('A')
     q4ytdmeanhome=q4ytdmeanhome[(q4ytdmeanhome['HHOME_TEAM_ABBREVIATION']==home)&(q4ytdmeanhome['HPID'].str[3:17]==maxhomedate)][['HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST','HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA','HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M']].reset_index()
-    q4ytdmeanaway=q4ytdmeanaway[(q4ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q4ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APPFD','APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
+    q4ytdmeanaway=q4ytdmeanaway[(q4ytdmeanaway['AHOME_TEAM_ABBREVIATION']==opponent)&(q4ytdmeanaway['APID'].str[3:17]==maxawaydate)][['APSTL','APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST','APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA','APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M']].reset_index()
 
     testing = pd.concat([testing, testingaway], axis=1)
     testing = pd.concat([testing, testinghome], axis=1)
@@ -1629,62 +1662,116 @@ for match in matchupslive1:
 
 
 #testingdata for q1
-completetesting1=completetesting1[['HFTA', 'HFG3_PCT', 'HPTS', 'HSTL', 'HREB', 'HFGM',
-       'HFT_PCT', 'HFGA', 'HFG3A', 'HFG3M', 'HPF', 'HFG_PCT', 'HAST', 'HOREB',
-       'HBLK', 'HDREB', 'HTOV', 'HFTM', 'HBLKA', 'HPFD','S2015','S2016','S2017','S2018','S2019','S2020','S2021','S2022','S2023',
-       'HTeam Rank', 'HHomeDaysRest',
-       'HConferenceBinary', 'HOpponentConferenceBinary',
-       'HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST',
-       'HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA',
-       'HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M', 'HTeam_Last_Game_Score',
-       'HAverage_Team_Score', 'HAverage_Team_Total_Score', 'AFTA', 'AFG3_PCT', 'APTS', 'ASTL', 'AREB',
-       'AFGM', 'AFT_PCT', 'AFGA', 'AFG3A', 'AFG3M', 'APF', 'AFG_PCT',
-       'AAST', 'AOREB', 'ABLK', 'ADREB', 'ATOV', 'AFTM', 'ABLKA',
-       'APFD','AHomeDaysRest','ATeam Rank', 'APSTL',
-       'APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST',
-       'APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA',
-       'APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M',
-        'AOpponent_Last_Game_Score','AAverage_Opp_Team_Score', 'AAverage_Opp_Total_Score','H>40', 'H>30', 'H>20', 'H>15', 'H>10', 'H>5','A>40', 'A>30', 'A>20', 'A>15', 'A>10', 'A>5']]
-
+if not completetesting1.empty:
+    completetesting1=completetesting1[['HFTA', 'HFG3_PCT', 'HPTS', 'HSTL', 'HREB', 'HFGM',
+           'HFT_PCT', 'HFGA', 'HFG3A', 'HFG3M', 'HPF', 'HFG_PCT', 'HAST', 'HOREB',
+           'HBLK', 'HDREB', 'HTOV', 'HFTM', 'HBLKA', 'HPFD','S2015','S2016','S2017','S2018','S2019','S2020','S2021','S2022','S2023',
+           'HTeam Rank', 'HHomeDaysRest',
+           'HConferenceBinary', 'HOpponentConferenceBinary',
+           'HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST',
+           'HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA',
+           'HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M', 'HTeam_Last_Game_Score',
+           'HAverage_Team_Score', 'HAverage_Team_Total_Score', 'AFTA', 'AFG3_PCT', 'APTS', 'ASTL', 'AREB',
+           'AFGM', 'AFT_PCT', 'AFGA', 'AFG3A', 'AFG3M', 'APF', 'AFG_PCT',
+           'AAST', 'AOREB', 'ABLK', 'ADREB', 'ATOV', 'AFTM', 'ABLKA',
+           'APFD','AHomeDaysRest','ATeam Rank', 'APSTL',
+           'APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST',
+           'APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA',
+           'APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M',
+            'AOpponent_Last_Game_Score','AAverage_Opp_Team_Score', 'AAverage_Opp_Total_Score','H>40', 'H>30', 'H>20', 'H>15', 'H>10', 'H>5','A>40', 'A>30', 'A>20', 'A>15', 'A>10', 'A>5','HomeTeam']]
+else:
+    completetesting1=completetesting1
 #testingdata for q2
-completetesting2=completetesting2[['HFTA', 'HFG3_PCT', 'HPTS', 'HSTL', 'HREB', 'HFGM',
-       'HFT_PCT', 'HFGA', 'HFG3A', 'HFG3M', 'HPF', 'HFG_PCT', 'HAST', 'HOREB',
-       'HBLK', 'HDREB', 'HTOV', 'HFTM', 'HBLKA', 'HPFD','S2015','S2016','S2017','S2018','S2019','S2020','S2021','S2022','S2023',
-       'HTeam Rank', 'HHomeDaysRest',
-       'HConferenceBinary', 'HOpponentConferenceBinary',
-       'HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST',
-       'HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA',
-       'HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M', 'HTeam_Last_Game_Score',
-       'HAverage_Team_Score', 'HAverage_Team_Total_Score', 'AFTA', 'AFG3_PCT', 'APTS', 'ASTL', 'AREB',
-       'AFGM', 'AFT_PCT', 'AFGA', 'AFG3A', 'AFG3M', 'APF', 'AFG_PCT',
-       'AAST', 'AOREB', 'ABLK', 'ADREB', 'ATOV', 'AFTM', 'ABLKA',
-       'APFD','AHomeDaysRest','ATeam Rank', 'APSTL',
-       'APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST',
-       'APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA',
-       'APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M',
-        'AOpponent_Last_Game_Score','AAverage_Opp_Team_Score', 'AAverage_Opp_Total_Score','H>40', 'H>30', 'H>20', 'H>15', 'H>10', 'H>5','A>40', 'A>30', 'A>20', 'A>15', 'A>10', 'A>5']]
-
+if not completetesting2.empty:
+    completetesting2=completetesting2[['HFTA', 'HFG3_PCT', 'HPTS', 'HSTL', 'HREB', 'HFGM',
+           'HFT_PCT', 'HFGA', 'HFG3A', 'HFG3M', 'HPF', 'HFG_PCT', 'HAST', 'HOREB',
+           'HBLK', 'HDREB', 'HTOV', 'HFTM', 'HBLKA', 'HPFD','S2015','S2016','S2017','S2018','S2019','S2020','S2021','S2022','S2023',
+           'HTeam Rank', 'HHomeDaysRest',
+           'HConferenceBinary', 'HOpponentConferenceBinary',
+           'HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST',
+           'HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA',
+           'HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M', 'HTeam_Last_Game_Score',
+           'HAverage_Team_Score', 'HAverage_Team_Total_Score', 'AFTA', 'AFG3_PCT', 'APTS', 'ASTL', 'AREB',
+           'AFGM', 'AFT_PCT', 'AFGA', 'AFG3A', 'AFG3M', 'APF', 'AFG_PCT',
+           'AAST', 'AOREB', 'ABLK', 'ADREB', 'ATOV', 'AFTM', 'ABLKA',
+           'APFD','AHomeDaysRest','ATeam Rank', 'APSTL',
+           'APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST',
+           'APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA',
+           'APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M',
+            'AOpponent_Last_Game_Score','AAverage_Opp_Team_Score', 'AAverage_Opp_Total_Score','H>40', 'H>30', 'H>20', 'H>15', 'H>10', 'H>5','A>40', 'A>30', 'A>20', 'A>15', 'A>10', 'A>5','HomeTeam']]
+else:
+    completetesting2=completetesting2
 #testingdata for q3
-completetesting3=completetesting3[['HFTA', 'HFG3_PCT', 'HPTS', 'HSTL', 'HREB', 'HFGM',
-       'HFT_PCT', 'HFGA', 'HFG3A', 'HFG3M', 'HPF', 'HFG_PCT', 'HAST', 'HOREB',
-       'HBLK', 'HDREB', 'HTOV', 'HFTM', 'HBLKA', 'HPFD','S2015','S2016','S2017','S2018','S2019','S2020','S2021','S2022','S2023',
-       'HTeam Rank', 'HHomeDaysRest',
-       'HConferenceBinary', 'HOpponentConferenceBinary',
-       'HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST',
-       'HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA',
-       'HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M', 'HTeam_Last_Game_Score',
-       'HAverage_Team_Score', 'HAverage_Team_Total_Score', 'AFTA', 'AFG3_PCT', 'APTS', 'ASTL', 'AREB',
-       'AFGM', 'AFT_PCT', 'AFGA', 'AFG3A', 'AFG3M', 'APF', 'AFG_PCT',
-       'AAST', 'AOREB', 'ABLK', 'ADREB', 'ATOV', 'AFTM', 'ABLKA',
-       'APFD','AHomeDaysRest','ATeam Rank', 'APSTL',
-       'APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST',
-       'APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA',
-       'APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M',
-        'AOpponent_Last_Game_Score','AAverage_Opp_Team_Score', 'AAverage_Opp_Total_Score','H>40', 'H>30', 'H>20', 'H>15', 'H>10', 'H>5','A>40', 'A>30', 'A>20', 'A>15', 'A>10', 'A>5']]
+
+if not completetesting3.empty:
+    completetesting3=completetesting3[['HFTA', 'HFG3_PCT', 'HPTS', 'HSTL', 'HREB', 'HFGM',
+           'HFT_PCT', 'HFGA', 'HFG3A', 'HFG3M', 'HPF', 'HFG_PCT', 'HAST', 'HOREB',
+           'HBLK', 'HDREB', 'HTOV', 'HFTM', 'HBLKA', 'HPFD','S2015','S2016','S2017','S2018','S2019','S2020','S2021','S2022','S2023',
+           'HTeam Rank', 'HHomeDaysRest',
+           'HConferenceBinary', 'HOpponentConferenceBinary',
+           'HPSTL', 'HPBLKA', 'HPFGA', 'HPTOV', 'HPFG_PCT', 'HPDREB', 'HPAST',
+           'HPFT_PCT', 'HPBLK', 'HPFGM', 'HPFG3A', 'HPPF', 'HPPFD', 'HPFTA',
+           'HPPTS', 'HPFG3_PCT', 'HPFTM', 'HPREB', 'HPOREB', 'HPFG3M', 'HTeam_Last_Game_Score',
+           'HAverage_Team_Score', 'HAverage_Team_Total_Score', 'AFTA', 'AFG3_PCT', 'APTS', 'ASTL', 'AREB',
+           'AFGM', 'AFT_PCT', 'AFGA', 'AFG3A', 'AFG3M', 'APF', 'AFG_PCT',
+           'AAST', 'AOREB', 'ABLK', 'ADREB', 'ATOV', 'AFTM', 'ABLKA',
+           'APFD','AHomeDaysRest','ATeam Rank', 'APSTL',
+           'APBLKA', 'APFGA', 'APTOV', 'APFG_PCT', 'APDREB', 'APAST',
+           'APFT_PCT', 'APBLK', 'APFGM', 'APFG3A', 'APPF', 'APPFD', 'APFTA',
+           'APPTS', 'APFG3_PCT', 'APFTM', 'APREB', 'APOREB', 'APFG3M',
+            'AOpponent_Last_Game_Score','AAverage_Opp_Team_Score', 'AAverage_Opp_Total_Score','H>40', 'H>30', 'H>20', 'H>15', 'H>10', 'H>5','A>40', 'A>30', 'A>20', 'A>15', 'A>10', 'A>5','HomeTeam']]
+else:
+    completetesting3=completetesting3
 
 
+completetesting1=completetesting1.reset_index().drop('index',axis=1)
+completetesting2=completetesting2.reset_index().drop('index',axis=1)
+completetesting3=completetesting3.reset_index().drop('index',axis=1)
 
-completetesting=completetesting1.reset_index().drop('index',axis=1)
-completetesting=completetesting2.reset_index().drop('index',axis=1)
-completetesting=completetesting3.reset_index().drop('index',axis=1)
 
+scorerange=range(45,150)
+newdf = pd.DataFrame(np.repeat(completetesting2.values, len(scorerange), axis=0),columns = completetesting2.columns)
+newdf = pd.concat([completetesting2]*len(scorerange), axis=0)
+repeat=int(len(newdf)/len(scorerange))
+scoregrid=pd.DataFrame(scorerange,columns={'0': 'TotalQ2'})
+newdf['TotalQ2']=np.repeat(scoregrid.values, repeat, axis=0)
+hometeams=newdf['HomeTeam']
+newdf=newdf.reset_index().drop(['index','HomeTeam'],axis=1)
+completetesting=newdf
+
+benchmark = [item[0] for item in modelsq2]
+gridpredict=[]
+for score in benchmark:
+    predictiongrid = []
+    for j in range(0,len(completetesting)):
+        prob=modelsq2[int(math.floor(float(score)))-190][1].predict_proba(newdf.iloc[j:j+1,:])[0][1]
+        predictiongrid.insert(j,[score,prob,completetesting['TotalQ2'][j]])
+    data=pd.DataFrame(predictiongrid)
+    data[3]=hometeams.reset_index().drop('index',axis=1)
+    data.rename(columns={0:'TotalScore',1:'Prob',2:'Q2',3:'HomeTeam'})
+    gridpredict.insert(benchmark.index(score),[score,data])
+
+def pullprobability(teamhome,HomeQ3,AwayQ3,bettotal):
+    global probmatrix
+    global problist
+    probmatrix=gridpredict[benchmark.index(bettotal)][1]
+    probmatrix=probmatrix[(probmatrix['HomeTeam'] == teamhome.upper())&(probmatrix['HomeQ3']==HomeQ3)&(probmatrix['AwayQ3'] == AwayQ3) & (probmatrix['TotalScore'] == bettotal)]
+    probmatrix=probmatrix.reset_index().drop('index',axis=1)
+    problist=[]
+    problist.insert(0,[modelsq2[int(math.floor(float(bettotal)))-190][1].predict_proba(probmatrix.iloc[0:1,:-2])[0][1],bettotal,teamhome])
+    problist.insert(1, [modelsq2[int(math.floor(float(bettotal+1))) - 190][1].predict_proba(probmatrix.iloc[0:1,:-2])[0][1],
+                        bettotal+1,teamhome])
+    problist.insert(2, [modelsq2[int(math.floor(float(bettotal+2))) - 190][1].predict_proba(probmatrix.iloc[0:1,:-2])[0][1],
+                         bettotal+2,teamhome])
+    problist.insert(3, [modelsq2[int(math.floor(float(bettotal+3))) - 190][1].predict_proba(probmatrix.iloc[0:1,:-2])[0][1],
+                        bettotal+3,teamhome])
+    problist.insert(4, [modelsq2[int(math.floor(float(bettotal+4))) - 190][1].predict_proba(probmatrix.iloc[0:1,:-2])[0][1],
+                        bettotal+4,teamhome])
+    problist=pd.DataFrame(problist).rename(columns={0:'Score',1:'Probability',2:'HomeTeam'})
+    print(problist)
+
+pullprobability("MIL",60,60,220)
+
+def pullprobability(teamhome,q2,bettotal):
+    prob=gridpredict[benchmark.index(bettotal)][1]
+    print(prob[(prob['HomeTeam']==teamhome)&(prob['Q2'].between(q2,q2+5))])
